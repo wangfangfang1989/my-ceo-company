@@ -276,6 +276,11 @@ textarea{resize:vertical;min-height:64px}
 .tm-actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 .tm-ring.warn{animation:tmPulse 1s infinite}
 @keyframes tmPulse{0%,100%{stroke:var(--accent)}50%{stroke:#e07068}}
+
+/* 撒花 */
+.confetti-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:20px}
+.confetti-piece{position:absolute;width:10px;height:10px;top:-20px;animation:confettiFall 2.5s ease-in forwards}
+@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotateZ(0)}100%{opacity:0;transform:translateY(500px) rotateZ(720deg)}}
 @media (max-width:900px){
   .grid-3{grid-template-columns:1fr}
   .grid-2{grid-template-columns:1fr}
@@ -391,17 +396,12 @@ textarea{resize:vertical;min-height:64px}
     <!-- ===== 每日经营 ===== -->
     <section class="page" id="page-daily">
       <h1 class="page-title">每日经营</h1>
-      <p class="page-desc">每天 1 分钟，给各事业部注资。数据只有你自己能看到、能改。</p>
+      <p class="page-desc">每天 10 分钟，给自己的能力公司注资。数据只有你自己能看到、能改。</p>
 
       <div class="card">
         <label class="f">日期</label>
         <input type="date" id="d-date">
 
-        <label class="f">各事业部今日投入（分钟）+ 专注程度</label>
-        <div id="d-deps"></div>
-        <p class="hint">换算规则：能力值 = 分钟 ÷ 10 × 专注系数（深度专注 ×1.5，一般 ×1.0，分心 ×0.7）。每部每日上限 3 点，防止刷分 😏</p>
-
-        <div class="divider"></div>
         <label class="f">📋 今日作业任务（预估时间 · 倒计时挑战）</label>
         <div id="d-tasks"></div>
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -412,7 +412,8 @@ textarea{resize:vertical;min-height:64px}
         </div>
         <p class="hint" style="margin-top:6px">得分规则：按时完成 +1.0 · 提前完成 ×2 = +2.0 · 拖延完成 0 分 · 到时未完成 0 分</p>
 
-        <label class="f">今日加分项</label>
+        <div class="divider"></div>
+        <label class="f">⭐ 今日加分项</label>
         <div id="d-bonus"></div>
 
         <label class="f">一句话经营日志（今天公司运转得怎么样？）</label>
@@ -612,6 +613,7 @@ textarea{resize:vertical;min-height:64px}
     <!-- ===== 倒计时弹层 ===== -->
     <div class="overlay" id="ov-timer">
       <div class="panel" style="width:400px">
+        <div id="tm-confetti" class="confetti-layer"></div>
         <h2 id="tm-title">⏱ 倒计时挑战</h2>
         <p class="sub" id="tm-sub"></p>
         <div class="tm-ico" id="tm-ico">📚</div>
@@ -623,7 +625,10 @@ textarea{resize:vertical;min-height:64px}
           </svg>
         </div>
         <div id="tm-status" class="tm-status" style="display:none"></div>
-        <div class="tm-actions" id="tm-actions"></div>
+        <div class="tm-actions" id="tm-actions">
+          <button class="btn btn-ghost" id="tm-pause">⏸ 暂停</button>
+          <button class="btn btn-primary" id="tm-finish">✅ 完成</button>
+        </div>
       </div>
     </div>
 
@@ -738,11 +743,9 @@ var CEO_LEVELS = [
 ];
 
 var BONUS_ITEMS = [
-  { id: 'hw', label: '今日作业按时完成、没有应付', power: 0.3 },
-  { id: 'extra', label: '主动加练 ≥ 20 分钟（没人要求）', power: 0.5 },
-  { id: 'review', label: '预习 / 复习了明天的内容', power: 0.3 },
-  { id: 'fix', label: '订正错题（每题 +0.1）', power: 0.1, count: true },
-  { id: 'read', label: '课外阅读 ≥ 20 分钟', power: 0.3 }
+  { id: 'extra', label: '主动加练学霸 30min', power: 0.5, schedule: true },
+  { id: 'read', label: '阅读课外优秀散文/作文等 30min', power: 0.5 },
+  { id: 'fix', label: '主动整理错题和笔记', power: 0.5 }
 ];
 
 var LOGOS = ['🚀', '🐉', '🦁', '🦅', '⚡', '🔥', '💎', '🌟', '🤖', '🦊'];
@@ -758,8 +761,8 @@ var BADGES = [
   { id: 'open', ico: '🎊', name: '公司开张', desc: '完成第一次每日经营' },
   { id: 'streak7', ico: '🔥', name: '一周连营', desc: '连续经营 7 天' },
   { id: 'streak30', ico: '🌋', name: '月度连营', desc: '连续经营 30 天' },
-  { id: 'triple', ico: '⚡', name: '三线作战', desc: '单日三大部门同时投入' },
-  { id: 'deep60', ico: '🧠', name: '深度工作', desc: '单日深度专注累计 60 分钟' },
+  { id: 'triple', ico: '⚡', name: '三线作战', desc: '单日完成 3 项作业任务' },
+  { id: 'deep60', ico: '🧠', name: '深度工作', desc: '单日提前完成 2 项作业任务' },
   { id: 'bug1', ico: '🔧', name: '首个 Bug 修复', desc: '修好第一个错题 Bug' },
   { id: 'bug10', ico: '🛠', name: 'Bug 克星', desc: '累计修复 10 个 Bug' },
   { id: 'bug50', ico: '🏆', name: 'Bug 大师', desc: '累计修复 50 个 Bug' },
@@ -823,47 +826,53 @@ function esc(s) {
 }
 
 // ---------- 核心计算 ----------
-function dailyGainOf(entry) {
+// 能力值来源：作业任务得分（按时+1 / 提前+2）+ 加分项 + Bug修复
+function taskScoreOfDate(ds) {
+  var tasks = state.tasks[ds] || [];
   var total = 0;
-  DEPTS.forEach(function (dp) {
-    var d = entry.deps[dp];
-    if (d && d.min > 0) {
-      var g = Math.min(3, (d.min / 10) * FOCUS[d.focus].factor);
-      total += g;
-    }
+  tasks.forEach(function (t) {
+    if (t.status === 'done' || t.status === 'early') total += t.score;
   });
-  BONUS_ITEMS.forEach(function (b) {
-    if (entry.bonus[b.id]) {
-      var c = entry.bonus[b.id];
-      total += b.count ? (b.power * c) : b.power;
-    }
-  });
-  // 加上作业任务得分
-  if (entry.bonus && entry.bonus.taskScore) total += entry.bonus.taskScore;
   return total;
+}
+
+function bonusScoreOfEntry(entry) {
+  var t = 0;
+  BONUS_ITEMS.forEach(function (b) {
+    if (entry.bonus && entry.bonus[b.id]) t += b.count ? (b.power * entry.bonus[b.id]) : b.power;
+  });
+  return t;
+}
+
+function dailyGainOf(entry) {
+  return bonusScoreOfEntry(entry) + taskScoreOfDate(entry.date);
 }
 
 function depPower(dep) {
   var p = 0;
-  state.daily.forEach(function (e) {
-    var d = e.deps[dep];
-    if (d && d.min > 0) p += Math.min(3, (d.min / 10) * FOCUS[d.focus].factor);
+  // 该部门的作业任务得分
+  Object.keys(state.tasks).forEach(function (ds) {
+    state.tasks[ds].forEach(function (t) {
+      if (t.dep === dep && (t.status === 'done' || t.status === 'early')) p += t.score;
+    });
   });
-  // 加分项归入对应部门太难，加分项计入总能力，各部门只算投入
+  // 该部门修复的 Bug
   state.bugs.forEach(function (b) { if (b.dep === dep && b.status === 'fixed') p += 0.2; });
   return r1(p);
 }
 
 function totalPower() {
   var t = 0;
-  DEPTS.forEach(function (dp) { t += depPower(dp); });
-  state.daily.forEach(function (e) {
-    BONUS_ITEMS.forEach(function (b) {
-      if (e.bonus[b.id]) t += b.count ? (b.power * e.bonus[b.id]) : b.power;
+  // 所有作业任务得分（含"其他"部门）
+  Object.keys(state.tasks).forEach(function (ds) {
+    state.tasks[ds].forEach(function (tk) {
+      if (tk.status === 'done' || tk.status === 'early') t += tk.score;
     });
-    // 加上作业任务得分
-    if (e.bonus && e.bonus.taskScore) t += e.bonus.taskScore;
   });
+  // 加分项
+  state.daily.forEach(function (e) { t += bonusScoreOfEntry(e); });
+  // Bug 修复
+  state.bugs.forEach(function (b) { if (b.status === 'fixed') t += 0.2; });
   return r1(t);
 }
 
@@ -935,11 +944,11 @@ function checkBadges() {
   if (st.current >= 7 || st.best >= 7) add('streak7');
   if (st.current >= 30 || st.best >= 30) add('streak30');
   state.daily.forEach(function (e) {
-    var all3 = DEPTS.every(function (dp) { return e.deps[dp] && e.deps[dp].min > 0; });
-    if (all3) add('triple');
-    var deepMin = 0;
-    DEPTS.forEach(function (dp) { if (e.deps[dp] && e.deps[dp].focus === 'deep') deepMin += e.deps[dp].min; });
-    if (deepMin >= 60) add('deep60');
+    var tasks = state.tasks[e.date] || [];
+    var doneTasks = tasks.filter(function (t) { return t.status === 'done' || t.status === 'early'; });
+    var earlyTasks = tasks.filter(function (t) { return t.status === 'early'; });
+    if (doneTasks.length >= 3) add('triple');
+    if (earlyTasks.length >= 2) add('deep60');
     if (e.bonus && e.bonus.extra) add('active10');
   });
   var fixed = state.bugs.filter(function (b) { return b.status === 'fixed'; }).length;
@@ -1038,15 +1047,19 @@ function renderDashboard() {
     var p = depPower(dp);
     var l = levelOf(DEP_LEVELS, p);
     var pct = l.next ? ((p - l.cur.min) / (l.next.min - l.cur.min)) * 100 : 100;
-    var weekMin = 0;
+    var weekTasks = 0;
     var weekAgo = shiftDate(todayStr(), -6);
-    state.daily.forEach(function (e) {
-      if (e.date >= weekAgo && e.deps[dp] && e.deps[dp].min) weekMin += e.deps[dp].min;
+    Object.keys(state.tasks).forEach(function (ds) {
+      if (ds >= weekAgo) {
+        state.tasks[ds].forEach(function (t) {
+          if (t.dep === dp && (t.status === 'done' || t.status === 'early')) weekTasks++;
+        });
+      }
     });
     html += '<div class="card dep-card"><div class="dep-head"><span class="dep-name">' + dp + '事业部</span><span class="dep-power">' + p + '</span></div>' +
       '<span class="dep-level">' + l.cur.name + '</span>' +
       '<div class="progress"><div class="progress-fill" style="width:' + Math.min(100, Math.max(2, pct)) + '%"></div></div>' +
-      '<div class="dep-week">本周投入 ' + weekMin + ' 分钟' + (l.next ? ' · 距「' + l.next.name + '」还差 ' + r1(l.next.min - p) : ' · 满级') + '</div></div>';
+      '<div class="dep-week">本周完成 ' + weekTasks + ' 项作业' + (l.next ? ' · 距「' + l.next.name + '」还差 ' + r1(l.next.min - p) : ' · 满级') + '</div></div>';
   });
   document.getElementById('dep-cards').innerHTML = html;
 
@@ -1103,13 +1116,12 @@ function growthTagHtml(p) {
 
 function renderDaily() {
   document.getElementById('d-date').value = todayStr();
-  buildDailyDeps();
   buildDailyBonus();
   renderTasks();
   loadDailyEntry(todayStr());
   renderDailyHistory();
 
-  document.getElementById('d-date').onchange = function () { loadDailyEntry(this.value); renderTasks(); };
+  document.getElementById('d-date').onchange = function () { buildDailyBonus(); loadDailyEntry(this.value); renderTasks(); };
   document.getElementById('d-save').onclick = saveDaily;
   document.getElementById('task-add').onclick = addTask;
   document.getElementById('task-name').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') addTask(); });
@@ -1121,23 +1133,24 @@ function renderDaily() {
   };
 }
 
-function buildDailyDeps() {
-  var html = '';
-  DEPTS.forEach(function (dp) {
-    html += '<div class="dep-row"><div class="dname">' + dp + '</div>' +
-      '<input type="number" min="0" max="600" id="dm-' + dp + '" placeholder="分钟" oninput="previewDaily()">' +
-      '<select id="df-' + dp + '" onchange="previewDaily()">' +
-      '<option value="normal">一般</option><option value="deep">深度专注</option><option value="easy">有点分心</option></select>' +
-      '<div class="mini-gain" id="dg-' + dp + '"></div></div>';
-  });
-  document.getElementById('d-deps').innerHTML = html;
-}
-
 function buildDailyBonus() {
   var html = '';
+  var ds = document.getElementById('d-date') ? document.getElementById('d-date').value : todayStr();
+  var dayOfWeek = new Date(ds + 'T00:00:00').getDay(); // 0=Sun, 1=Mon...
   BONUS_ITEMS.forEach(function (b) {
+    var label = b.label;
+    if (b.schedule) {
+      // 周一三：语文 / 周二四：数学 / 周五：英语
+      var subMap = { 1: '语文', 3: '语文', 2: '数学', 4: '数学', 5: '英语' };
+      var sub = subMap[dayOfWeek];
+      if (sub) {
+        label = '主动加练' + sub + '学霸 30min';
+      } else {
+        label = '主动加练学霸 30min（周末自选科目）';
+      }
+    }
     html += '<div class="bonus-item"><input type="checkbox" id="cb-' + b.id + '" onchange="previewDaily()">' +
-      '<label for="cb-' + b.id + '" style="cursor:pointer">' + b.label + '</label>' +
+      '<label for="cb-' + b.id + '" style="cursor:pointer">' + label + '</label>' +
       (b.count ? '<input type="number" min="0" max="99" id="cn-' + b.id + '" placeholder="题数" oninput="previewDaily()">' : '') +
       '<span class="bp">+' + b.power + '</span></div>';
   });
@@ -1149,11 +1162,6 @@ function collectDailyForm() {
     date: document.getElementById('d-date').value,
     deps: {}, bonus: {}, note: document.getElementById('d-note').value
   };
-  DEPTS.forEach(function (dp) {
-    var min = parseInt(document.getElementById('dm-' + dp).value, 10) || 0;
-    var focus = document.getElementById('df-' + dp).value;
-    if (min > 0) entry.deps[dp] = { min: min, focus: focus };
-  });
   BONUS_ITEMS.forEach(function (b) {
     var c = document.getElementById('cb-' + b.id);
     if (c && c.checked) {
@@ -1166,14 +1174,6 @@ function collectDailyForm() {
 function previewDaily() {
   var e = collectDailyForm();
   var total = 0;
-  DEPTS.forEach(function (dp) {
-    var g = 0, el = document.getElementById('dg-' + dp);
-    if (e.deps[dp]) {
-      g = Math.min(3, (e.deps[dp].min / 10) * FOCUS[e.deps[dp].focus].factor);
-    }
-    if (el) el.textContent = g > 0 ? '+' + r1(g) : '';
-    total += g;
-  });
   BONUS_ITEMS.forEach(function (b) {
     if (e.bonus[b.id]) total += b.count ? b.power * e.bonus[b.id] : b.power;
   });
@@ -1185,16 +1185,9 @@ function previewDaily() {
 
 function loadDailyEntry(ds) {
   var e = state.daily.find(function (x) { return x.date === ds; });
-  buildDailyDeps();
   buildDailyBonus();
   document.getElementById('d-note').value = e ? (e.note || '') : '';
   if (e) {
-    DEPTS.forEach(function (dp) {
-      if (e.deps[dp]) {
-        document.getElementById('dm-' + dp).value = e.deps[dp].min;
-        document.getElementById('df-' + dp).value = e.deps[dp].focus;
-      }
-    });
     BONUS_ITEMS.forEach(function (b) {
       if (e.bonus[b.id]) {
         document.getElementById('cb-' + b.id).checked = true;
@@ -1211,7 +1204,7 @@ function loadDailyEntry(ds) {
 function saveDaily() {
   var e = collectDailyForm();
   if (!e.date) { toast('请选择日期'); return; }
-  var hasAny = Object.keys(e.deps).length > 0 || Object.keys(e.bonus).length > 0 || (e.note && e.note.trim());
+  var hasAny = Object.keys(e.bonus).length > 0 || (e.note && e.note.trim());
   if (!hasAny) { toast('今天还没投入，先记不了账哦'); return; }
   // 奖励当日完成徽章的情况在 render 里检查
   state.daily = state.daily.filter(function (x) { return x.date !== e.date; });
@@ -1238,12 +1231,15 @@ function renderDailyHistory() {
   if (!list.length) { box.innerHTML = '<div class="empty">账本还是空的，从今天开始记第一笔</div>'; return; }
   var html = '';
   list.forEach(function (e) {
+    var tasks = state.tasks[e.date] || [];
+    var doneTasks = tasks.filter(function (t) { return t.status === 'done' || t.status === 'early'; });
+    var bonusNames = [];
+    BONUS_ITEMS.forEach(function (b) { if (e.bonus && e.bonus[b.id]) bonusNames.push(b.label.replace(/（.*）/, '')); });
     var parts = [];
-    DEPTS.forEach(function (dp) {
-      if (e.deps[dp]) parts.push(dp + ' ' + e.deps[dp].min + '分·' + FOCUS[e.deps[dp].focus].label);
-    });
+    if (doneTasks.length) parts.push('完成作业 ' + doneTasks.length + ' 项');
+    if (bonusNames.length) parts.push(bonusNames.join('、'));
     html += '<div class="kv"><span style="font-weight:700">' + e.date + '</span><span>+' + r1(dailyGainOf(e)) + '</span></div>' +
-      (parts.length ? '<div class="hint" style="padding:0 0 6px">' + esc(parts.join(' / ')) + '</div>' : '') +
+      (parts.length ? '<div class="hint" style="padding:0 0 6px">' + esc(parts.join(' · ')) + '</div>' : '') +
       (e.note ? '<div class="hint" style="padding:0 0 8px;color:var(--ink)">📝 ' + esc(e.note) + '</div>' : '<div style="height:6px"></div>');
   });
   box.innerHTML = html;
@@ -1610,20 +1606,20 @@ document.querySelectorAll('.nav-item').forEach(function (el) {
 var XP_PER_LV = 100; // 每级所需经验（固定，简单直观）
 
 var MONSTER_POOL = [
-  { type: 'goblin', ico: '👹', name: '作业小鬼', desc: '按时完成今天的全部作业，不敷衍', check: 'hw' },
-  { type: 'slime', ico: '🟢', name: '专注史莱姆', desc: '任意一个部门深度专注 ≥ 30 分钟', check: 'deep30' },
-  { type: 'wolf', ico: '🐺', name: '加练之狼', desc: '主动加练 ≥ 20 分钟（没人要求）', check: 'extra' },
-  { type: 'bat', ico: '🦇', name: '错题蝙蝠', desc: '订正 5 道错题', check: 'fix5' },
-  { type: 'ghost', ico: '👻', name: '预习幽灵', desc: '预习或复习明天的内容', check: 'review' },
-  { type: 'owl', ico: '🦉', name: '阅读猫头鹰', desc: '课外阅读 ≥ 20 分钟', check: 'read' },
-  { type: 'dragonling', ico: '🐲', name: '三线小龙', desc: '今天三大部门都有投入', check: 'triple' }
+  { type: 'goblin', ico: '👹', name: '作业小鬼', desc: '完成 1 项作业任务（按时或提前）', check: 'task1' },
+  { type: 'wolf', ico: '🐺', name: '加练之狼', desc: '主动加练学霸 30min', check: 'extra' },
+  { type: 'bat', ico: '🦇', name: '错题蝙蝠', desc: '主动整理错题和笔记', check: 'fix' },
+  { type: 'owl', ico: '🦉', name: '阅读猫头鹰', desc: '阅读课外优秀散文/作文 30min', check: 'read' },
+  { type: 'dragonling', ico: '🐲', name: '速通小龙', desc: '提前完成 1 项作业任务（×2 得分）', check: 'early1' },
+  { type: 'golem', ico: '🗿', name: '勤奋石像', desc: '完成 2 项作业任务', check: 'task2' },
+  { type: 'phoenix', ico: '🔥', name: '全勤凤凰', desc: '三项加分项全部完成', check: 'allbonus' }
 ];
 var MON_REWARD = { gold: 5, xp: 25 };
 
 var WEEK_QUESTS = [
   { ico: '🐙', name: '章鱼博士的疯狂测试', desc: '一周内修复 10 个错题 Bug', goal: 10, gold: 30, xp: 120 },
   { ico: '🧟', name: '僵尸大军围城', desc: '本周连续经营 5 天（每天有打卡）', goal: 5, gold: 30, xp: 120 },
-  { ico: '🦂', name: '蝎子王的毒针阵', desc: '本周深度专注累计 ≥ 150 分钟', goal: 150, gold: 35, xp: 140 }
+  { ico: '🦂', name: '蝎子王的毒针阵', desc: '本周完成作业任务 ≥ 10 个', goal: 10, gold: 35, xp: 140 }
 ];
 
 var SHOP_ITEMS = [
@@ -1746,21 +1742,23 @@ function monsterProgress(m, entry) {
   // entry = 当日打卡数据（可能为 null）
   if (!entry) return { now: 0, goal: 1, done: false };
   var def = MONSTER_POOL.find(function (p) { return p.type === m.type; });
+  var tasks = state.tasks[entry.date] || [];
+  var doneTasks = tasks.filter(function (t) { return t.status === 'done' || t.status === 'early'; });
+  var earlyTasks = tasks.filter(function (t) { return t.status === 'early'; });
   var now = 0, goal = 1;
   switch (def.check) {
-    case 'hw': now = entry.bonus.hw ? 1 : 0; goal = 1; break;
+    case 'task1': now = doneTasks.length; goal = 1; break;
+    case 'task2': now = doneTasks.length; goal = 2; break;
+    case 'early1': now = earlyTasks.length; goal = 1; break;
     case 'extra': now = entry.bonus.extra ? 1 : 0; goal = 1; break;
-    case 'review': now = entry.bonus.review ? 1 : 0; goal = 1; break;
+    case 'fix': now = entry.bonus.fix ? 1 : 0; goal = 1; break;
     case 'read': now = entry.bonus.read ? 1 : 0; goal = 1; break;
-    case 'fix5': now = entry.bonus.fix || 0; goal = 5; break;
-    case 'deep30':
-      var dm = 0;
-      DEPTS.forEach(function (dp) { if (entry.deps[dp] && entry.deps[dp].focus === 'deep') dm += entry.deps[dp].min; });
-      now = dm; goal = 30; break;
-    case 'triple':
-      var n = 0;
-      DEPTS.forEach(function (dp) { if (entry.deps[dp] && entry.deps[dp].min > 0) n++; });
-      now = n; goal = 3; break;
+    case 'allbonus':
+      var bn = 0;
+      if (entry.bonus.extra) bn++;
+      if (entry.bonus.read) bn++;
+      if (entry.bonus.fix) bn++;
+      now = bn; goal = 3; break;
   }
   return { now: now, goal: goal, done: now >= goal };
 }
@@ -1813,13 +1811,13 @@ function weekKeyOf(ds) {
 
 function weekProgress() {
   var wk = weekKeyOf(todayStr());
-  var dep = '语文'; // 任意部门累计
   // 依据不同副本类型计算
   var q = state.game.weekQuest;
   if (!q || q.weekKey !== wk) return null;
+  var weekEnd = shiftDate(wk, 6);
   var now = 0;
   if (q.type === 0) {
-    now = state.bugs.filter(function (b) { return b.status === 'fixed' && b.fixedDate >= wk && b.fixedDate <= shiftDate(wk, 6); }).length;
+    now = state.bugs.filter(function (b) { return b.status === 'fixed' && b.fixedDate >= wk && b.fixedDate <= weekEnd; }).length;
   } else if (q.type === 1) {
     var cnt = 0;
     for (var i = 0; i < 7; i++) {
@@ -1828,13 +1826,14 @@ function weekProgress() {
     }
     now = cnt;
   } else if (q.type === 2) {
-    var min = 0;
-    state.daily.forEach(function (e) {
-      if (e.date >= wk && e.date <= shiftDate(wk, 6)) {
-        DEPTS.forEach(function (dp) { if (e.deps[dp] && e.deps[dp].focus === 'deep') min += e.deps[dp].min; });
+    // 本周完成的作业任务数（按时或提前）
+    Object.keys(state.tasks).forEach(function (ds) {
+      if (ds >= wk && ds <= weekEnd) {
+        state.tasks[ds].forEach(function (t) {
+          if (t.status === 'done' || t.status === 'early') now++;
+        });
       }
     });
-    now = min;
   }
   return { now: now, goal: q.goal, done: q.done };
 }
@@ -2145,16 +2144,51 @@ function startTimer(ds, taskId) {
   tmElapsedAtPause = 0;
   t.status = 'running';
   t.actualSec = 0;
+  tmPaused = false;
   save(); renderTasks();
 
   document.getElementById('tm-title').textContent = '⏱ 倒计时挑战';
   document.getElementById('tm-sub').textContent = t.dep + ' · ' + t.name;
   document.getElementById('tm-ico').textContent = depEmoji(t.dep);
   document.getElementById('tm-status').style.display = 'none';
-  document.getElementById('tm-actions').innerHTML =
-    '<button class="btn btn-danger" id="tm-abort">⏹ 放弃</button>';
-  document.getElementById('tm-abort').onclick = abortTimer;
+  document.getElementById('tm-confetti').innerHTML = '';
+  setTimerButtons('running');
   openOverlay('ov-timer');
+  tickTimer();
+  tmInterval = setInterval(tickTimer, 1000);
+}
+
+var tmPaused = false;
+
+function setTimerButtons(mode) {
+  var box = document.getElementById('tm-actions');
+  if (mode === 'running') {
+    box.innerHTML = '<button class="btn btn-ghost" id="tm-pause">⏸ 暂停</button><button class="btn btn-primary" id="tm-finish">✅ 完成</button>';
+    document.getElementById('tm-pause').onclick = pauseTimer;
+    document.getElementById('tm-finish').onclick = finishTask;
+  } else if (mode === 'paused') {
+    box.innerHTML = '<button class="btn btn-primary" id="tm-resume">▶ 继续</button><button class="btn btn-primary" id="tm-finish">✅ 完成</button>';
+    document.getElementById('tm-resume').onclick = resumeTimer;
+    document.getElementById('tm-finish').onclick = finishTask;
+  } else if (mode === 'done') {
+    box.innerHTML = '<button class="btn btn-primary" onclick="closeTimer()">收下</button>';
+  }
+}
+
+function pauseTimer() {
+  if (!tmTask) return;
+  tmElapsedAtPause += Math.floor((Date.now() - tmStartTs) / 1000);
+  clearInterval(tmInterval); tmInterval = null;
+  tmPaused = true;
+  setTimerButtons('paused');
+  document.getElementById('tm-display').textContent = '⏸ ' + fmtTime(tmTotalSec - tmElapsedAtPause);
+}
+
+function resumeTimer() {
+  if (!tmTask) return;
+  tmStartTs = Date.now();
+  tmPaused = false;
+  setTimerButtons('running');
   tickTimer();
   tmInterval = setInterval(tickTimer, 1000);
 }
@@ -2203,7 +2237,7 @@ function fmtTime(sec) {
 function finishTask() {
   if (!tmTask) return;
   clearInterval(tmInterval); tmInterval = null;
-  var elapsed = tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
+  var elapsed = tmPaused ? tmElapsedAtPause : tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
   tmTask.actualSec = elapsed;
   var remaining = tmTotalSec - elapsed;
   var score, resultLabel, resultClass;
@@ -2215,6 +2249,7 @@ function finishTask() {
     resultClass = 'early';
     addGold(8, true); addXp(30, true);
     floatText('⭐ ×2 加倍得分！');
+    fireConfetti();
   } else {
     // 拖堂
     var overSec = -remaining;
@@ -2233,8 +2268,25 @@ function finishTask() {
   document.getElementById('tm-status').style.display = '';
   document.getElementById('tm-status').className = 'tm-status ' + resultClass;
   document.getElementById('tm-status').textContent = resultLabel;
-  document.getElementById('tm-actions').innerHTML =
-    '<button class="btn btn-primary" onclick="closeTimer()">收下</button>';
+  setTimerButtons('done');
+}
+
+function fireConfetti() {
+  var layer = document.getElementById('tm-confetti');
+  if (!layer) return;
+  var colors = ['#f0c75e', '#e8712b', '#2e8b57', '#4a6fa5', '#c0504d', '#7fc2a4', '#ffd76e'];
+  var pieces = '';
+  for (var i = 0; i < 60; i++) {
+    var left = Math.random() * 100;
+    var delay = Math.random() * 0.6;
+    var color = colors[i % colors.length];
+    var size = 8 + Math.random() * 8;
+    var round = Math.random() > 0.5 ? 'border-radius:50%' : 'border-radius:2px';
+    pieces += '<div class="confetti-piece" style="left:' + left + '%;background:' + color + ';width:' + size + 'px;height:' + size + 'px;animation-delay:' + delay + 's;' + round + '"></div>';
+  }
+  layer.innerHTML = pieces;
+  // 3秒后清除
+  setTimeout(function () { if (layer) layer.innerHTML = ''; }, 3500);
 }
 
 function abortTimer() {
