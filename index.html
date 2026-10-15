@@ -241,6 +241,41 @@ textarea{resize:vertical;min-height:64px}
 /* 数字飘字 */
 .float-txt{position:fixed;font-weight:900;font-size:22px;color:#f0c75e;text-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;z-index:300;animation:floatUp 1.6s forwards}
 @keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-14px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(1)}}
+
+/* ===== 作业任务卡 ===== */
+.task-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px dashed var(--line)}
+.task-item:last-child{border-bottom:none}
+.task-dep-tag{flex-shrink:0;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#eef1f8;color:#4a6fa5}
+.task-info{flex:1;min-width:0}
+.task-name{font-size:14px;font-weight:600;word-break:break-all}
+.task-meta{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.task-status{flex-shrink:0;font-size:12px;font-weight:700}
+.task-status.todo{color:var(--ink-soft)}
+.task-status.done{color:var(--up)}
+.task-status.late{color:var(--down)}
+.task-status.timeout{color:var(--down);opacity:.7}
+.task-actions{flex-shrink:0;display:flex;gap:6px}
+.task-bar{height:6px;background:#efede6;border-radius:3px;overflow:hidden;margin-top:6px}
+.task-bar-fill{height:100%;transition:width .3s}
+.task-bar-fill.run{background:var(--accent)}
+.task-bar-fill.done{background:var(--up)}
+.task-bar-fill.late{background:var(--down)}
+.task-bar-fill.timeout{background:var(--down);opacity:.5}
+
+/* 倒计时弹层 */
+.tm-ico{font-size:36px;margin:10px 0 6px}
+.tm-display{font-size:48px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:2px;color:var(--accent);line-height:1}
+.tm-ring-wrap{position:relative;width:160px;height:160px;margin:14px auto 6px}
+.tm-ring{transition:stroke-dashoffset 1s linear}
+.tm-ring-wrap .tm-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:700;color:var(--ink-soft);text-align:center;white-space:nowrap}
+.tm-status{margin:10px 0;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;text-align:center}
+.tm-status.early{background:#e5f2ea;color:var(--up)}
+.tm-status.ontime{background:#e5f2ea;color:var(--up)}
+.tm-status.late{background:#f9e9e8;color:var(--down)}
+.tm-status.timeout{background:#f9e9e8;color:var(--down)}
+.tm-actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.tm-ring.warn{animation:tmPulse 1s infinite}
+@keyframes tmPulse{0%,100%{stroke:var(--accent)}50%{stroke:#e07068}}
 @media (max-width:900px){
   .grid-3{grid-template-columns:1fr}
   .grid-2{grid-template-columns:1fr}
@@ -365,6 +400,17 @@ textarea{resize:vertical;min-height:64px}
         <label class="f">各事业部今日投入（分钟）+ 专注程度</label>
         <div id="d-deps"></div>
         <p class="hint">换算规则：能力值 = 分钟 ÷ 10 × 专注系数（深度专注 ×1.5，一般 ×1.0，分心 ×0.7）。每部每日上限 3 点，防止刷分 😏</p>
+
+        <div class="divider"></div>
+        <label class="f">📋 今日作业任务（预估时间 · 倒计时挑战）</label>
+        <div id="d-tasks"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <select id="task-dep" style="width:90px"><option value="语文">语文</option><option value="数学">数学</option><option value="英语">英语</option><option value="其他">其他</option></select>
+          <input type="text" id="task-name" placeholder="作业内容，如：数学练习册P12-13" style="flex:1">
+          <input type="number" id="task-min" placeholder="预计分钟" style="width:100px" min="1" max="300">
+          <button class="btn btn-ghost btn-sm" id="task-add">➕ 添加</button>
+        </div>
+        <p class="hint" style="margin-top:6px">得分规则：按时完成 +1.0 · 提前完成 ×2 = +2.0 · 拖延完成 0 分 · 到时未完成 0 分</p>
 
         <label class="f">今日加分项</label>
         <div id="d-bonus"></div>
@@ -563,6 +609,24 @@ textarea{resize:vertical;min-height:64px}
       </div>
     </div>
 
+    <!-- ===== 倒计时弹层 ===== -->
+    <div class="overlay" id="ov-timer">
+      <div class="panel" style="width:400px">
+        <h2 id="tm-title">⏱ 倒计时挑战</h2>
+        <p class="sub" id="tm-sub"></p>
+        <div class="tm-ico" id="tm-ico">📚</div>
+        <div class="tm-display" id="tm-display">25:00</div>
+        <div class="tm-ring-wrap">
+          <svg class="tm-ring" width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#efede6" stroke-width="10"/>
+            <circle id="tm-progress" cx="80" cy="80" r="70" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+          </svg>
+        </div>
+        <div id="tm-status" class="tm-status" style="display:none"></div>
+        <div class="tm-actions" id="tm-actions"></div>
+      </div>
+    </div>
+
     <!-- ===== 荣誉墙 ===== -->
     <section class="page" id="page-badges">
       <h1 class="page-title">荣誉墙</h1>
@@ -718,6 +782,7 @@ function defaultState() {
     bugs: [],
     board: [],
     badges: {},
+    tasks: {},          // { '2026-10-15': [ {id,dep,name,estMin,status,actualSec,score} ] }  status: todo/running/done/late/timeout
     // ---- 游戏层 ----
     game: {
       xp: 0, lv: 1, gold: 0, keys: 0,
@@ -737,6 +802,7 @@ function load() {
       state = JSON.parse(raw);
       // v1 -> v2 迁移
       if (!state.game) state.game = defaultState().game;
+      if (!state.tasks) state.tasks = {};
       return;
     }
   } catch (e) { }
@@ -772,6 +838,8 @@ function dailyGainOf(entry) {
       total += b.count ? (b.power * c) : b.power;
     }
   });
+  // 加上作业任务得分
+  if (entry.bonus && entry.bonus.taskScore) total += entry.bonus.taskScore;
   return total;
 }
 
@@ -793,6 +861,8 @@ function totalPower() {
     BONUS_ITEMS.forEach(function (b) {
       if (e.bonus[b.id]) t += b.count ? (b.power * e.bonus[b.id]) : b.power;
     });
+    // 加上作业任务得分
+    if (e.bonus && e.bonus.taskScore) t += e.bonus.taskScore;
   });
   return r1(t);
 }
@@ -1035,11 +1105,14 @@ function renderDaily() {
   document.getElementById('d-date').value = todayStr();
   buildDailyDeps();
   buildDailyBonus();
+  renderTasks();
   loadDailyEntry(todayStr());
   renderDailyHistory();
 
-  document.getElementById('d-date').onchange = function () { loadDailyEntry(this.value); };
+  document.getElementById('d-date').onchange = function () { loadDailyEntry(this.value); renderTasks(); };
   document.getElementById('d-save').onclick = saveDaily;
+  document.getElementById('task-add').onclick = addTask;
+  document.getElementById('task-name').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') addTask(); });
   document.getElementById('d-del').onclick = function () {
     var ds = document.getElementById('d-date').value;
     state.daily = state.daily.filter(function (e) { return e.date !== ds; });
@@ -1104,6 +1177,9 @@ function previewDaily() {
   BONUS_ITEMS.forEach(function (b) {
     if (e.bonus[b.id]) total += b.count ? b.power * e.bonus[b.id] : b.power;
   });
+  // 加上作业任务得分
+  var ds = document.getElementById('d-date') ? document.getElementById('d-date').value : '';
+  if (ds) total += getTaskScoreTotal(ds);
   document.getElementById('d-preview').textContent = '+' + r1(total);
 }
 
@@ -1139,6 +1215,8 @@ function saveDaily() {
   if (!hasAny) { toast('今天还没投入，先记不了账哦'); return; }
   // 奖励当日完成徽章的情况在 render 里检查
   state.daily = state.daily.filter(function (x) { return x.date !== e.date; });
+  // 同步作业任务得分到 entry
+  syncTasksToEntry(e.date, e);
   state.daily.push(e);
   // 游戏层：首次记录当日才发钥匙（防重复编辑刷钥匙）
   var isNewDay = !state._savedDates || state._savedDates.indexOf(e.date) < 0;
@@ -1974,6 +2052,242 @@ function gotoPage(pid) {
   document.querySelectorAll('.nav-item').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-page') === pid); });
   document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
   document.getElementById('page-' + pid).classList.add('active');
+}
+
+// ---------- 作业任务与倒计时 ----------
+var tmInterval = null;   // 倒计时 setInterval 句柄
+var tmTask = null;       // 当前正在倒计时的任务对象
+var tmDateKey = null;    // 当前任务所在日期 key
+var tmStartTs = 0;       // 开始时的时间戳
+var tmTotalSec = 0;      // 总秒数（预估分钟 × 60）
+var tmElapsedAtPause = 0;// 暂停时已用秒数
+
+function ensureTasks(ds) {
+  if (!state.tasks[ds]) state.tasks[ds] = [];
+  return state.tasks[ds];
+}
+
+function addTask() {
+  var dep = document.getElementById('task-dep').value;
+  var name = document.getElementById('task-name').value.trim();
+  var min = parseInt(document.getElementById('task-min').value, 10);
+  if (!name) { toast('写一下作业内容'); return; }
+  if (!min || min < 1) { toast('预估几分钟？'); return; }
+  var ds = document.getElementById('d-date').value || todayStr();
+  var tasks = ensureTasks(ds);
+  tasks.push({ id: 't' + Date.now() + Math.floor(Math.random() * 1000), dep: dep, name: name, estMin: min, status: 'todo', actualSec: 0, score: 0 });
+  save(); renderTasks();
+  document.getElementById('task-name').value = '';
+  document.getElementById('task-min').value = '';
+  toast('作业已添加：' + dep + ' · ' + name + '（' + min + '分钟）');
+}
+
+function deleteTask(ds, taskId) {
+  var tasks = ensureTasks(ds);
+  var idx = tasks.findIndex(function (t) { return t.id === taskId; });
+  if (idx >= 0) {
+    tasks.splice(idx, 1);
+    save(); renderTasks();
+  }
+}
+
+function renderTasks() {
+  var ds = document.getElementById('d-date').value || todayStr();
+  var tasks = state.tasks[ds] || [];
+  var box = document.getElementById('d-tasks');
+  if (!tasks.length) { box.innerHTML = '<div class="hint" style="padding:8px 0">还没有添加作业任务，在下面添加一项试试</div>'; return; }
+  var html = '';
+  tasks.forEach(function (t) {
+    var stText, stClass, barClass, barPct;
+    switch (t.status) {
+      case 'running': stText = '⏱ 进行中'; stClass = 'todo'; barClass = 'run'; barPct = Math.min(100, (t.actualSec / (t.estMin * 60)) * 100); break;
+      case 'done': stText = '✅ 按时完成 +' + t.score; stClass = 'done'; barClass = 'done'; barPct = 100; break;
+      case 'early': stText = '⭐ 提前完成 ×2 +' + t.score; stClass = 'done'; barClass = 'done'; barPct = 100; break;
+      case 'late': stText = '🐌 拖延完成 0分'; stClass = 'late'; barClass = 'late'; barPct = 100; break;
+      case 'timeout': stText = '⏰ 超时未完成 0分'; stClass = 'timeout'; barClass = 'timeout'; barPct = 100; break;
+      default: stText = '⬜ 待开始'; stClass = 'todo'; barClass = ''; barPct = 0;
+    }
+    html += '<div class="task-item">' +
+      '<span class="task-dep-tag">' + esc(t.dep) + '</span>' +
+      '<div class="task-info">' +
+        '<div class="task-name">' + esc(t.name) + '</div>' +
+        '<div class="task-meta">预计 ' + t.estMin + ' 分钟' + (t.actualSec > 0 ? ' · 实际 ' + Math.round(t.actualSec / 60) + ' 分' : '') + '</div>' +
+        '<div class="task-bar"><div class="task-bar-fill ' + barClass + '" style="width:' + barPct + '%"></div></div>' +
+      '</div>' +
+      '<span class="task-status ' + stClass + '">' + stText + '</span>' +
+      '<div class="task-actions">' +
+        (t.status === 'todo' ? '<button class="btn btn-primary btn-sm" data-start="' + t.id + '">▶ 开始</button>' : '') +
+        (t.status === 'running' ? '<button class="btn btn-gold btn-sm" data-finish="' + t.id + '">✅ 完成</button>' : '') +
+        '<button class="btn btn-danger btn-sm" data-del="' + t.id + '">✖</button>' +
+      '</div>' +
+    '</div>';
+  });
+  box.innerHTML = html;
+  // 绑定按钮
+  box.querySelectorAll('[data-start]').forEach(function (btn) {
+    btn.onclick = function () { startTimer(ds, btn.getAttribute('data-start')); };
+  });
+  box.querySelectorAll('[data-finish]').forEach(function (btn) {
+    btn.onclick = function () { finishTask(); };
+  });
+  box.querySelectorAll('[data-del]').forEach(function (btn) {
+    btn.onclick = function () { deleteTask(ds, btn.getAttribute('data-del')); };
+  });
+}
+
+function startTimer(ds, taskId) {
+  var tasks = ensureTasks(ds);
+  var t = tasks.find(function (x) { return x.id === taskId; });
+  if (!t) return;
+  tmTask = t; tmDateKey = ds;
+  tmStartTs = Date.now();
+  tmTotalSec = t.estMin * 60;
+  tmElapsedAtPause = 0;
+  t.status = 'running';
+  t.actualSec = 0;
+  save(); renderTasks();
+
+  document.getElementById('tm-title').textContent = '⏱ 倒计时挑战';
+  document.getElementById('tm-sub').textContent = t.dep + ' · ' + t.name;
+  document.getElementById('tm-ico').textContent = depEmoji(t.dep);
+  document.getElementById('tm-status').style.display = 'none';
+  document.getElementById('tm-actions').innerHTML =
+    '<button class="btn btn-danger" id="tm-abort">⏹ 放弃</button>';
+  document.getElementById('tm-abort').onclick = abortTimer;
+  openOverlay('ov-timer');
+  tickTimer();
+  tmInterval = setInterval(tickTimer, 1000);
+}
+
+function depEmoji(dep) {
+  return ({ '语文': '📖', '数学': '🔢', '英语': '🔤', '其他': '📚' })[dep] || '📚';
+}
+
+function tickTimer() {
+  if (!tmTask) return;
+  var elapsed = tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
+  tmTask.actualSec = elapsed;
+  var remaining = tmTotalSec - elapsed;
+  var pct, display, warn;
+  if (remaining > 0) {
+    pct = (elapsed / tmTotalSec);
+    display = fmtTime(remaining);
+    warn = remaining <= 60; // 最后1分钟高亮
+  } else {
+    pct = 1;
+    display = '00:00';
+    warn = true;
+  }
+  // 更新显示
+  document.getElementById('tm-display').textContent = display;
+  document.getElementById('tm-display').style.color = warn ? '#c0504d' : 'var(--accent)';
+  var ring = document.getElementById('tm-progress');
+  var dash = 440;
+  ring.style.strokeDashoffset = dash * pct;
+  ring.classList.toggle('warn', warn);
+
+  // 自动检查超时（但不自动结束，给他机会自己点完成——拖堂就是 late）
+  if (remaining <= 0 && tmTask.status === 'running') {
+    document.getElementById('tm-status').style.display = '';
+    document.getElementById('tm-status').className = 'tm-status late';
+    document.getElementById('tm-status').textContent = '⏰ 时间到！现在完成算拖堂（0分），但快做完了就点完成吧';
+  }
+}
+
+function fmtTime(sec) {
+  if (sec < 0) sec = 0;
+  var m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function finishTask() {
+  if (!tmTask) return;
+  clearInterval(tmInterval); tmInterval = null;
+  var elapsed = tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
+  tmTask.actualSec = elapsed;
+  var remaining = tmTotalSec - elapsed;
+  var score, resultLabel, resultClass;
+  if (remaining > 0) {
+    // 提前完成
+    score = 2.0;
+    tmTask.status = 'early';
+    resultLabel = '⭐ 提前完成！剩余 ' + fmtTime(remaining) + ' · 得分 ×2 = +' + score;
+    resultClass = 'early';
+    addGold(8, true); addXp(30, true);
+    floatText('⭐ ×2 加倍得分！');
+  } else {
+    // 拖堂
+    var overSec = -remaining;
+    score = 0;
+    tmTask.status = 'late';
+    resultLabel = '🐌 拖延了 ' + fmtTime(overSec) + ' · 0 分（没关系，Bug 记下来下次修）';
+    resultClass = 'late';
+    addXp(10, true);
+    floatText('🐌 拖堂了，下次提速');
+  }
+  tmTask.score = score;
+  // 保存到当日 entry 的 bonus 里（影响能力值计算）
+  applyTaskScoreToDaily(tmDateKey, score);
+  save(); renderTasks();
+  // 更新弹层
+  document.getElementById('tm-status').style.display = '';
+  document.getElementById('tm-status').className = 'tm-status ' + resultClass;
+  document.getElementById('tm-status').textContent = resultLabel;
+  document.getElementById('tm-actions').innerHTML =
+    '<button class="btn btn-primary" onclick="closeTimer()">收下</button>';
+}
+
+function abortTimer() {
+  if (!tmTask) { closeTimer(); return; }
+  clearInterval(tmInterval); tmInterval = null;
+  tmTask.status = 'todo';
+  tmTask.actualSec = 0;
+  save(); renderTasks();
+  closeTimer();
+  toast('已放弃，任务回到待开始状态');
+}
+
+function closeTimer() {
+  clearInterval(tmInterval); tmInterval = null;
+  tmTask = null; tmDateKey = null;
+  closeOverlay('ov-timer');
+}
+
+function applyTaskScoreToDaily(ds, score) {
+  // 把作业任务得分汇总到当日 bonus.taskScore，影响 previewDaily 的总预览
+  var entry = state.daily.find(function (e) { return e.date === ds; });
+  if (!entry) return;
+  if (!entry.bonus) entry.bonus = {};
+  // 重算所有已完成任务的总分
+  var tasks = state.tasks[ds] || [];
+  var total = 0;
+  tasks.forEach(function (t) {
+    if (t.status === 'done' || t.status === 'early') total += t.score;
+  });
+  entry.bonus.taskScore = total;
+}
+
+// 每日打卡保存时也同步作业得分到 entry
+function syncTasksToEntry(ds, entry) {
+  var tasks = state.tasks[ds] || [];
+  var total = 0;
+  tasks.forEach(function (t) {
+    if (t.status === 'done' || t.status === 'early') total += t.score;
+  });
+  if (total > 0) {
+    entry.bonus = entry.bonus || {};
+    entry.bonus.taskScore = total;
+  }
+}
+
+// 在 previewDaily 里追加作业得分到总预览
+function getTaskScoreTotal(ds) {
+  var tasks = state.tasks[ds] || [];
+  var total = 0;
+  tasks.forEach(function (t) {
+    if (t.status === 'done' || t.status === 'early') total += t.score;
+  });
+  return total;
 }
 
 // ---------- 启动 ----------
