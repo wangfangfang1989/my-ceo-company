@@ -530,7 +530,7 @@ textarea{resize:vertical;min-height:64px}
     <!-- ===== 怪兽猎场 ===== -->
     <section class="page" id="page-arena">
       <h1 class="page-title">⚔️ 怪兽猎场</h1>
-      <p class="page-desc">每天刷出 3 只小怪 + 1 个周挑战副本。打倒它们，金币经验全掉落。学习是你最锋利的武器。</p>
+      <p class="page-desc">每天刷出 3 只小怪 + 1 个周挑战副本，打倒它们掉金币。经验（升级）只来自完成作业任务——本周完成越多，升级越快。</p>
 
       <div class="gold-bar card">
         <div class="gold-item"><span class="gold-num" id="arena-gold">🪙 0</span>金币</div>
@@ -541,6 +541,8 @@ textarea{resize:vertical;min-height:64px}
         <div class="chest" id="arena-chest" title="点我开宝箱">🎁</div>
         <div class="gold-item" style="text-align:right"><span style="font-size:13px" id="arena-keys">🔑 0</span><span>宝箱钥匙</span></div>
       </div>
+
+      <div class="card" id="lv-estimate" style="margin-bottom:16px"></div>
 
       <h2 class="sec-title">👹 今日小怪（<span id="mon-count"></span>）</h2>
       <div class="grid grid-3" id="monster-list"></div>
@@ -1306,7 +1308,7 @@ function saveProject() {
   toast('项目已归档：' + tag);
   // BOSS 战结算
   var savedP = state.projects[state.projects.length - 1];
-  savedP.bugIdsText = 'BOSS 战：' + esc(savedP.name) + ' · ' + (growth != null ? (growth > 0 ? '<b style="color:var(--up)">胜利</b> 🪙+15 XP+60' : '获得情报 🪙+5 XP+30') : 'BOSS 逃逸 🪙+5 XP+20');
+  savedP.bugIdsText = 'BOSS 战：' + esc(savedP.name) + ' · ' + (growth != null ? (growth > 0 ? '<b style="color:var(--up)">胜利</b> 🪙+20' : '获得情报 🪙+8') : 'BOSS 逃逸 🪙+8');
   openBossFight(savedP);
   document.getElementById('p-name').value = '';
   document.getElementById('p-goal').value = '';
@@ -1403,11 +1405,11 @@ function renderBugs() {
       var b = state.bugs.find(function (x) { return x.id === this.getAttribute('data-fix'); }, this) || state.bugs.find(function (x) { return x.id === btn.getAttribute('data-fix'); });
       if (b) {
         b.status = 'fixed'; b.fixedDate = todayStr();
-        // 游戏层：修 Bug 奖励
-        addXp(10, true);
+        // 游戏层：修 Bug 奖励（金币+钥匙，不给经验，经验只来自作业任务）
+        addGold(3, true);
         state.game.keys++;
         save(); render();
-        toast('Bug 修复！' + b.dep + ' +0.2 能力值 · 🔑+1 · XP+10');
+        toast('Bug 修复！' + b.dep + ' +0.2 能力值 · 🪙+3 · 🔑+1');
       }
     };
   });
@@ -1604,6 +1606,13 @@ document.querySelectorAll('.nav-item').forEach(function (el) {
 
 // ---------- 游戏层常量 ----------
 var XP_PER_LV = 100; // 每级所需经验（固定，简单直观）
+// 作业任务是经验(XP)的唯一来源，便于按周估算升级速度
+// 提前完成 +9 XP / 按时完成 +7 XP / 拖延完成 +2 XP
+var TASK_XP = { early: 9, done: 7, late: 2 };
+var TASK_GOLD = { early: 8, done: 5, late: 0 };
+var TASK_SCORE = { early: 2.0, done: 1.0, late: 0 };
+// 估算基准：每周完成约 15 个任务（每天 3 项），全按时 ≈ 105 XP ≈ 升 1 级
+var EST_TASKS_PER_WEEK = 15;
 
 var MONSTER_POOL = [
   { type: 'goblin', ico: '👹', name: '作业小鬼', desc: '完成 1 项作业任务（按时或提前）', check: 'task1' },
@@ -1614,12 +1623,12 @@ var MONSTER_POOL = [
   { type: 'golem', ico: '🗿', name: '勤奋石像', desc: '完成 2 项作业任务', check: 'task2' },
   { type: 'phoenix', ico: '🔥', name: '全勤凤凰', desc: '三项加分项全部完成', check: 'allbonus' }
 ];
-var MON_REWARD = { gold: 5, xp: 25 };
+var MON_REWARD = { gold: 6 }; // 小怪只掉金币；经验(XP)唯一来源是完成作业任务，便于按周估算升级
 
 var WEEK_QUESTS = [
-  { ico: '🐙', name: '章鱼博士的疯狂测试', desc: '一周内修复 10 个错题 Bug', goal: 10, gold: 30, xp: 120 },
-  { ico: '🧟', name: '僵尸大军围城', desc: '本周连续经营 5 天（每天有打卡）', goal: 5, gold: 30, xp: 120 },
-  { ico: '🦂', name: '蝎子王的毒针阵', desc: '本周完成作业任务 ≥ 10 个', goal: 10, gold: 35, xp: 140 }
+  { ico: '🐙', name: '章鱼博士的疯狂测试', desc: '一周内修复 10 个错题 Bug', goal: 10, gold: 40 },
+  { ico: '🧟', name: '僵尸大军围城', desc: '本周连续经营 5 天（每天有打卡）', goal: 5, gold: 40 },
+  { ico: '🦂', name: '蝎子王的毒针阵', desc: '本周完成作业任务 ≥ 10 个', goal: 10, gold: 45 }
 ];
 
 var SHOP_ITEMS = [
@@ -1633,7 +1642,7 @@ var SHOP_ITEMS = [
 
 var CHEST_LOOT = [
   { ico: '🪙', label: '金币', min: 8, max: 25, kind: 'gold' },
-  { ico: '💪', label: '经验药水', min: 10, max: 30, kind: 'xp' },
+  { ico: '💰', label: '额外金币袋', min: 10, max: 30, kind: 'bonus', chance: 0.4 },
   { ico: '🔑', label: '再抽一把钥匙', min: 0, max: 0, kind: 'key', chance: 0.25 }
 ];
 
@@ -1777,7 +1786,6 @@ function checkMonstersAfterDaily(entry) {
   });
   if (killed.length) {
     addGold(MON_REWARD.gold * killed.length, true);
-    addXp(MON_REWARD.xp * killed.length, true);
     save();
     showMonsterLoot(killed);
   }
@@ -1788,9 +1796,8 @@ function checkMonstersAfterDaily(entry) {
 function showMonsterLoot(killed) {
   var lines = '';
   var totalGold = MON_REWARD.gold * killed.length;
-  var totalXp = MON_REWARD.xp * killed.length;
   killed.forEach(function (k) {
-    lines += '<div class="kv"><span>' + k.ico + ' ' + k.name + '</span><span>🪙+' + MON_REWARD.gold + ' · XP+' + MON_REWARD.xp + '</span></div>';
+    lines += '<div class="kv"><span>' + k.ico + ' ' + k.name + '</span><span>🪙+' + MON_REWARD.gold + '</span></div>';
   });
   document.getElementById('rw-title').textContent = '⚔️ 战斗胜利！';
   document.getElementById('rw-sub').textContent = '今日小怪被打倒，掉落已入账';
@@ -1860,7 +1867,6 @@ function checkWeekQuest() {
     q.done = true;
     var def = WEEK_QUESTS[q.type];
     addGold(def.gold, true);
-    addXp(def.xp, true);
     save();
     showWeekQuestWin(def);
   }
@@ -1873,8 +1879,7 @@ function showWeekQuestWin(def) {
   document.getElementById('rw-loot').innerHTML = '<div class="loot-ico">' + def.ico + '</div>';
   document.getElementById('rw-list').innerHTML =
     '<div class="kv"><span>' + def.name + '</span><span>通关</span></div>' +
-    '<div class="kv"><span>掉落金币</span><span>🪙 +' + def.gold + '</span></div>' +
-    '<div class="kv"><span>掉落经验</span><span>+' + def.xp + ' XP</span></div>';
+    '<div class="kv"><span>掉落金币</span><span>🪙 +' + def.gold + '</span></div>';
   openOverlay('ov-reward');
 }
 
@@ -1888,11 +1893,11 @@ function openChest() {
   state.game.gold += amount;
   var extra = '';
   if (Math.random() < CHEST_LOOT[2].chance) { state.game.keys++; extra = '<div class="kv"><span>🔑 欧气爆发</span><span>钥匙 +1</span></div>'; }
-  // 小概率掉经验药水
-  var xpGain = 0;
+  // 小概率额外金币袋
+  var bonusGold = 0;
   if (Math.random() < 0.4) {
-    xpGain = 10 + Math.floor(Math.random() * 21);
-    addXp(xpGain, true);
+    bonusGold = 10 + Math.floor(Math.random() * 21);
+    state.game.gold += bonusGold;
   }
   save(); renderGameBar(); renderArena();
   document.getElementById('rw-title').textContent = '🎁 宝箱已开启';
@@ -1904,10 +1909,10 @@ function openChest() {
   document.getElementById('rw-loot').innerHTML = '';
   document.getElementById('rw-list').innerHTML =
     '<div class="kv"><span>🪙 金币</span><span>+' + amount + '</span></div>' +
-    (xpGain ? '<div class="kv"><span>💪 经验药水</span><span>+' + xpGain + ' XP</span></div>' : '') +
+    (bonusGold ? '<div class="kv"><span>💰 额外金币袋</span><span>+' + bonusGold + '</span></div>' : '') +
     extra;
   openOverlay('ov-reward');
-  floatText('🪙 +' + amount);
+  floatText('🪙 +' + (amount + bonusGold));
 }
 
 // ---------- 商店 ----------
@@ -1969,7 +1974,7 @@ function renderArena() {
       '<div class="mon-desc">' + def.desc + '</div>' +
       '<div class="hp-track"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
       '<div class="hint" style="margin-top:4px">' + (m.done ? '已讨伐' : pr.now + ' / ' + pr.goal) + '</div>' +
-      '<div class="mon-reward" style="margin-top:8px">🪙 +' + MON_REWARD.gold + ' · XP +' + MON_REWARD.xp + '</div>' +
+      '<div class="mon-reward" style="margin-top:8px">🪙 +' + MON_REWARD.gold + '</div>' +
       '<button class="btn ' + (m.done ? '' : 'btn-primary') + ' mon-kill" data-mon="' + m.id + '">' + (m.done ? '☠️ 战利品已收' : '在「每日经营」打卡即可攻击') + '</button>' +
       '</div>';
   });
@@ -1991,13 +1996,60 @@ function renderArena() {
     '<div class="boss-name">' + def.name + (q.done ? ' ✅ 已通关' : '') + '</div>' +
     '<div class="hint" style="margin-top:2px">' + def.desc + '</div>' +
     '<div class="boss-hp"><div class="boss-hp-fill" style="width:' + (100 - pct) + '%"></div></div>' +
-    '<div class="hint" style="margin-top:4px">进度 ' + (pr ? pr.now : 0) + ' / ' + q.goal + ' · 奖励 🪙' + def.gold + ' + ' + def.xp + 'XP</div>' +
+    '<div class="hint" style="margin-top:4px">进度 ' + (pr ? pr.now : 0) + ' / ' + q.goal + ' · 奖励 🪙' + def.gold + '</div>' +
     '</div></div></div>';
 
   var chest = document.getElementById('arena-chest');
   chest.onclick = openChest;
   chest.textContent = state.game.keys > 0 ? '🎁' : '🔒';
+  renderLevelEstimate();
   renderGameBar();
+}
+
+// 本周晋级估算：把"完成多少作业任务"换算成"能升几级"
+function renderLevelEstimate() {
+  var box = document.getElementById('lv-estimate');
+  if (!box) return;
+  var wk = weekKeyOf(todayStr());
+  var weekEnd = shiftDate(wk, 6);
+  // 本周已完成的作业任务（按时/提前/拖延都算参与，但只有按时和提前给满经验）
+  var weekTasks = { early: 0, done: 0, late: 0 };
+  Object.keys(state.tasks).forEach(function (ds) {
+    if (ds >= wk && ds <= weekEnd) {
+      state.tasks[ds].forEach(function (t) {
+        if (t.status === 'early') weekTasks.early++;
+        else if (t.status === 'done') weekTasks.done++;
+        else if (t.status === 'late') weekTasks.late++;
+      });
+    }
+  });
+  var weekDone = weekTasks.early + weekTasks.done; // 有效完成数
+  var weekXp = weekTasks.early * TASK_XP.early + weekTasks.done * TASK_XP.done + weekTasks.late * TASK_XP.late;
+
+  var g = state.game;
+  var xpIntoLevel = g.xp;                       // 当前级内已积累
+  var xpToNext = XP_PER_LV - xpIntoLevel;       // 距下一级还差
+  // 按本周实际节奏估算：还需多少个"按时完成"任务能升级
+  var tasksToNext = Math.ceil(xpToNext / TASK_XP.done);
+  // 本周剩余天数（含今天）
+  var today = todayStr();
+  var daysLeft = Math.max(0, daysBetween(today, weekEnd) + 1);
+  // 按 15 任务/周 的基准节奏，本周预计总经验与升级数
+  var projectedWeekXp = EST_TASKS_PER_WEEK * TASK_XP.done; // 全按时
+  var projectedLevels = (projectedWeekXp / XP_PER_LV).toFixed(1);
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+    '<b style="font-size:15px">📊 本周晋级估算</b>' +
+    '<span class="tag tag-new">Lv.' + g.lv + ' · ' + xpIntoLevel + '/' + XP_PER_LV + ' XP</span></div>' +
+    '<div class="progress" style="margin:10px 0 4px"><div class="progress-fill" style="width:' + Math.min(100, (xpIntoLevel / XP_PER_LV) * 100) + '%"></div></div>' +
+    '<div class="hint" style="margin-bottom:12px">距下一级还需 ' + xpToNext + ' XP ≈ 再按时完成 <b style="color:var(--accent)">' + tasksToNext + '</b> 个作业任务</div>' +
+    '<div class="kv"><span>本周已完成任务</span><span><b>' + weekDone + '</b> 个（⭐提前 ' + weekTasks.early + ' · ✅按时 ' + weekTasks.done + ' · 🐌拖延 ' + weekTasks.late + '）</span></div>' +
+    '<div class="kv"><span>本周已获经验</span><span>+' + weekXp + ' XP</span></div>' +
+    '<div class="kv"><span>本周剩余天数</span><span>' + daysLeft + ' 天</span></div>' +
+    '<div class="kv"><span>基准节奏（' + EST_TASKS_PER_WEEK + ' 个/周全按时）</span><span>≈ 每周升 <b style="color:var(--accent)">' + projectedLevels + '</b> 级</span></div>' +
+    '<div class="hint" style="margin-top:10px;line-height:1.7">💡 经验只来自作业任务：提前完成 +' + TASK_XP.early + ' XP、按时完成 +' + TASK_XP.done + ' XP、拖延 +' + TASK_XP.late + ' XP。<br>' +
+    '按每天 3 项、每周 ' + EST_TASKS_PER_WEEK + ' 项估算，稳定完成约每周升 1 级；多提前完成会更快。</div>';
+  box.innerHTML = html;
 }
 
 // ---------- BOSS 战（项目交付的战前/战后界面） ----------
@@ -2012,18 +2064,18 @@ function openBossFight(project) {
     if (isWin) {
       ico = '💀';
       body += '<p style="font-size:15px;margin:10px 0">BOSS 被击败！公司环比 <b style="color:var(--up)">+' + project.growth + '</b>，盈利到账。</p>' +
-        '<p class="hint">掉落战利品：🪙 +15 · +60 XP</p>';
-      addGold(15, true); addXp(60, true);
+        '<p class="hint">掉落战利品：🪙 +20</p>';
+      addGold(20, true);
     } else {
       body += '<p style="font-size:15px;margin:10px 0">BOSS 这回合赢了，但你拿到了它的<b>弱点情报</b>（错题报告）。修复关联 Bug，下次出招它就挡不住。</p>' +
-        '<p class="hint">安慰奖励：🪙 +5 · +30 XP（参战即有）</p>';
-      addGold(5, true); addXp(30, true);
+        '<p class="hint">安慰奖励：🪙 +8（参战即有）</p>';
+      addGold(8, true);
     }
   } else {
     body = '<div class="hint" style="margin-bottom:10px">' + esc(project.name) + ' · ' + project.date + '</div>' +
       '<p style="font-size:15px;margin:10px 0">BOSS 逃跑了——这次没有计分，情报不足。没关系，下次交付记得填分数，好算环比战果。</p>' +
-      '<p class="hint">参战奖励：🪙 +5 · +20 XP</p>';
-    addGold(5, true); addXp(20, true);
+      '<p class="hint">参战奖励：🪙 +8</p>';
+    addGold(8, true);
   }
   document.getElementById('boss-ico').textContent = ico;
   document.getElementById('boss-name').textContent = 'BOSS 战结算：' + project.name;
@@ -2240,27 +2292,36 @@ function finishTask() {
   var elapsed = tmPaused ? tmElapsedAtPause : tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
   tmTask.actualSec = elapsed;
   var remaining = tmTotalSec - elapsed;
-  var score, resultLabel, resultClass;
-  if (remaining > 0) {
-    // 提前完成
-    score = 2.0;
+  var ratio = tmTotalSec > 0 ? elapsed / tmTotalSec : 1; // 已用时间占预估的比例
+  var score, resultLabel, resultClass, goldGain, xpGain;
+  if (remaining > 0 && ratio <= 0.8) {
+    // 提前完成（剩余时间 > 20%）
+    score = TASK_SCORE.early; goldGain = TASK_GOLD.early; xpGain = TASK_XP.early;
     tmTask.status = 'early';
-    resultLabel = '⭐ 提前完成！剩余 ' + fmtTime(remaining) + ' · 得分 ×2 = +' + score;
+    resultLabel = '⭐ 提前完成！剩余 ' + fmtTime(remaining) + ' · 得分 ×2 = +' + score + ' · 🪙+' + goldGain + ' · XP+' + xpGain;
     resultClass = 'early';
-    addGold(8, true); addXp(30, true);
     floatText('⭐ ×2 加倍得分！');
     fireConfetti();
+  } else if (remaining >= 0) {
+    // 按时完成（在预估时间的最后 20% 内完成）
+    score = TASK_SCORE.done; goldGain = TASK_GOLD.done; xpGain = TASK_XP.done;
+    tmTask.status = 'done';
+    resultLabel = '✅ 按时完成！得分 +' + score + ' · 🪙+' + goldGain + ' · XP+' + xpGain;
+    resultClass = 'ontime';
+    floatText('✅ 按时完成 +1');
   } else {
-    // 拖堂
+    // 拖延完成（超出预估时间）
     var overSec = -remaining;
-    score = 0;
+    score = TASK_SCORE.late; goldGain = TASK_GOLD.late; xpGain = TASK_XP.late;
     tmTask.status = 'late';
-    resultLabel = '🐌 拖延了 ' + fmtTime(overSec) + ' · 0 分（没关系，Bug 记下来下次修）';
+    resultLabel = '🐌 拖延了 ' + fmtTime(overSec) + ' · 0 分（参与奖 XP+' + xpGain + '，下次提速）';
     resultClass = 'late';
-    addXp(10, true);
     floatText('🐌 拖堂了，下次提速');
   }
   tmTask.score = score;
+  // 金币 + 经验入账（经验是升级的唯一来源，全部来自作业任务）
+  if (goldGain > 0) addGold(goldGain, true);
+  addXp(xpGain, true);
   // 保存到当日 entry 的 bonus 里（影响能力值计算）
   applyTaskScoreToDaily(tmDateKey, score);
   save(); renderTasks();
