@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的能力公司</title>
+<style>
+:root{
+  --accent:#1a6b4a;
+  --accent-light:#e8f3ee;
+  --bg:#f6f4ef;
+  --card:#ffffff;
+  --ink:#2b2b28;
+  --ink-soft:#6b6a64;
+  --line:#e4e1d8;
+  --gold:#c9a227;
+  --up:#2e8b57;
+  --down:#c0504d;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+.app{display:none;min-height:100vh}
+.app.show{display:flex}
+
+/* ===== 侧边栏 ===== */
+.sidebar{width:230px;background:#1f2933;color:#cfd8e3;padding:22px 0;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.side-brand{display:flex;align-items:center;gap:10px;padding:0 20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.side-logo{font-size:30px}
+.side-name{font-size:15px;font-weight:700;color:#fff;line-height:1.3;word-break:break-all}
+.side-sub{font-size:11px;color:#8fa1b5}
+nav{flex:1;padding:14px 10px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;cursor:pointer;font-size:14px;color:#b6c2cf;margin-bottom:3px;transition:background .15s}
+.nav-item:hover{background:rgba(255,255,255,.07)}
+.nav-item.active{background:var(--accent);color:#fff;font-weight:600}
+.nav-ico{width:20px;text-align:center}
+.side-ceo{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#8fa1b5}
+.side-ceo b{color:#f0c75e;font-size:13px}
+
+/* ===== 主区 ===== */
+.main{flex:1;padding:26px 34px;max-width:1100px}
+.page{display:none}
+.page.active{display:block}
+h1.page-title{font-size:22px;margin-bottom:4px}
+.page-desc{color:var(--ink-soft);font-size:13px;margin-bottom:20px}
+h2.sec-title{font-size:15px;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+h2.sec-title:first-of-type{margin-top:0}
+
+/* ===== 卡片 ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.grid{display:grid;gap:16px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+
+/* ===== 总览 ===== */
+.hero{display:flex;gap:16px;align-items:stretch}
+.hero-ceo{flex:1.1;background:linear-gradient(135deg,#1f2933,#2c3a4a);color:#fff;border:none;display:flex;gap:18px;align-items:center}
+.hero-ceo .avatar{font-size:52px}
+.hero-ceo .t{font-size:20px;font-weight:800;color:#f0c75e}
+.hero-ceo .p{font-size:12px;color:#aebbc9}
+.hero-ceo .bar{height:8px;background:rgba(255,255,255,.15);border-radius:4px;margin-top:8px;overflow:hidden}
+.hero-ceo .bar-fill{height:100%;background:linear-gradient(90deg,#f0c75e,#e8b84b);border-radius:4px;transition:width .5s}
+.hero-flame{flex:.6;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.flame-num{font-size:38px;font-weight:800;color:#e8712b;line-height:1}
+.flame-label{font-size:12px;color:var(--ink-soft);margin-top:6px}
+.flame-best{font-size:11px;color:var(--ink-soft);margin-top:2px}
+
+.dep-card .dep-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.dep-name{font-weight:700;font-size:15px}
+.dep-power{font-size:22px;font-weight:800;color:var(--accent)}
+.dep-level{display:inline-block;font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 9px;border-radius:20px;margin-bottom:10px}
+.progress{height:10px;background:#efede6;border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:5px;transition:width .5s}
+.dep-week{font-size:12px;color:var(--ink-soft);margin-top:10px}
+
+/* 图表 */
+.chart{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:10px}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.chart-bar{width:70%;background:var(--accent);opacity:.85;border-radius:4px 4px 0 0;min-height:2px;transition:height .5s;position:relative}
+.chart-bar span{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink-soft);white-space:nowrap}
+.chart-day{font-size:11px;color:var(--ink-soft)}
+
+/* ===== 表单 ===== */
+label.f{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+label.f:first-child{margin-top:0}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+textarea{resize:vertical;min-height:64px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .1s,box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{box-shadow:0 3px 10px rgba(26,107,74,.35)}
+.btn-ghost{background:var(--accent-light);color:var(--accent)}
+.btn-danger{background:#fbeaea;color:#b04a47}
+.btn-sm{padding:5px 13px;font-size:12.5px}
+.btn-gold{background:linear-gradient(135deg,#f0c75e,#e0aa3a);color:#5a4200}
+
+/* 每日打卡 */
+.dep-row{display:grid;grid-template-columns:100px 1fr 150px 60px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line)}
+.dep-row:last-child{border-bottom:none}
+.dep-row .dname{font-weight:700;font-size:14px}
+.mini-gain{font-size:12px;color:var(--up);text-align:right;min-height:18px}
+.bonus-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.bonus-item:last-child{border-bottom:none}
+.bonus-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex-shrink:0}
+.bonus-item .bp{margin-left:auto;color:var(--up);font-weight:700;font-size:13px;flex-shrink:0}
+.bonus-item input[type=number]{width:70px;margin-left:8px;padding:4px 8px}
+.preview{background:var(--accent-light);border-radius:10px;padding:12px 16px;margin:16px 0;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.preview b{color:var(--up);font-size:17px}
+
+/* 项目 */
+.project-item{cursor:pointer;transition:box-shadow .15s}
+.project-item:hover{box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px}
+.tag-up{background:#e5f2ea;color:var(--up)}
+.tag-down{background:#f9e9e8;color:var(--down)}
+.tag-flat{background:#f0eee7;color:var(--ink-soft)}
+.tag-new{background:#eef1f8;color:#4a6fa5}
+.bug-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.bug-row:last-child{border-bottom:none}
+.bug-dep{flex-shrink:0;font-size:11px;background:#eef1f8;color:#4a6fa5;padding:1px 8px;border-radius:12px}
+.bug-desc{flex:1;word-break:break-all}
+.bug-desc.done{text-decoration:line-through;color:var(--ink-soft)}
+
+/* 徽章 */
+.badge-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.badge{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center}
+.badge.locked{opacity:.32;filter:grayscale(1)}
+.badge .b-ico{font-size:34px}
+.badge .b-name{font-size:13px;font-weight:700;margin-top:6px}
+.badge .b-desc{font-size:11px;color:var(--ink-soft);margin-top:2px}
+.badge .b-date{font-size:10px;color:var(--gold);margin-top:4px;font-weight:600}
+
+/* 董事会 */
+.board-item{margin-bottom:14px}
+.board-q{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:3px}
+.board-a{font-size:13.5px;color:var(--ink);white-space:pre-wrap}
+
+/* 开场向导 */
+.wizard{position:fixed;inset:0;background:linear-gradient(140deg,#1f2933,#2c3a4a);z-index:100;display:flex;align-items:center;justify-content:center}
+.wizard.hide{display:none}
+.wiz-box{width:520px;background:#fff;border-radius:20px;padding:34px 38px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.wiz-step{display:none}
+.wiz-step.active{display:block}
+.wiz-step h2{font-size:20px;margin-bottom:6px}
+.wiz-step p.sub{font-size:13px;color:var(--ink-soft);margin-bottom:16px}
+.wiz-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.wiz-dot{width:8px;height:8px;border-radius:50%;background:#ddd}
+.wiz-dot.on{background:var(--accent);width:22px;border-radius:4px}
+.logo-opts,.color-opts{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0}
+.logo-opt{width:56px;height:56px;border-radius:14px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer}
+.logo-opt.on{border-color:var(--accent);background:var(--accent-light)}
+.color-opt{width:56px;height:40px;border-radius:10px;cursor:pointer;border:3px solid transparent}
+.color-opt.on{border-color:#333}
+.wiz-rules{font-size:13.5px;line-height:2}
+.wiz-rules li{margin-left:20px;margin-bottom:4px}
+.wiz-actions{display:flex;justify-content:space-between;margin-top:24px}
+
+/* toast */
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1f2933;color:#fff;padding:12px 26px;border-radius:12px;font-size:14px;font-weight:600;z-index:200;transition:transform .4s;box-shadow:0 8px 30px rgba(0,0,0,.3);display:flex;gap:10px;align-items:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.empty{color:var(--ink-soft);font-size:13px;text-align:center;padding:26px 0}
+.hint{font-size:12px;color:var(--ink-soft)}
+.divider{height:1px;background:var(--line);margin:18px 0}
+.back-link{color:var(--accent);font-size:13px;cursor:pointer;margin-bottom:14px;display:inline-block}
+.back-link:hover{text-decoration:underline}
+.kv{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border:none}
+.parent-rule{font-size:13.5px;line-height:1.9}
+.parent-rule b{color:var(--accent)}
+
+/* ===== 游戏层 ===== */
+.gold-bar{display:flex;gap:18px;align-items:center;background:linear-gradient(135deg,#2c2416,#4a3b20);color:#f0c75e;border:none;border-radius:var(--radius);padding:16px 22px;margin-bottom:16px;flex-wrap:wrap}
+.gold-num{font-size:26px;font-weight:800}
+.gold-item{display:flex;flex-direction:column;font-size:11px;color:#cbb37a}
+.xp-wrap{flex:1;min-width:200px}
+.xp-top{display:flex;justify-content:space-between;font-size:12px;color:#cbb37a;margin-bottom:4px}
+.xp-top b{color:#fff;font-size:14px}
+.xp-track{height:14px;background:rgba(255,255,255,.12);border-radius:7px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,#f0c75e,#ffd76e);border-radius:7px;transition:width .8s;position:relative}
+.xp-fill::after{content:'';position:absolute;top:0;bottom:0;right:0;width:22px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55))}
+
+.monster-card{position:relative;overflow:hidden}
+.monster-card.done{opacity:.55}
+.mon-ico{font-size:44px;transition:transform .25s}
+.monster-card:hover .mon-ico{transform:scale(1.12) rotate(-6deg)}
+.mon-name{font-weight:800;font-size:15px;margin-top:2px}
+.mon-desc{font-size:12.5px;color:var(--ink-soft);margin:4px 0 10px;min-height:34px}
+.mon-reward{font-size:12.5px;color:var(--up);font-weight:700}
+.mon-kill{margin-top:12px;width:100%;justify-content:center}
+.monster-card.done .mon-kill{background:#e8e6de;color:var(--ink-soft)}
+.hp-track{height:8px;background:#efede6;border-radius:4px;overflow:hidden;margin-top:8px}
+.hp-fill{height:100%;background:#d05a4e;transition:width .4s}
+.mon-badge-done{position:absolute;top:10px;right:10px;font-size:22px}
+
+.quest-tag{display:inline-block;font-size:11px;background:#eef1f8;color:#4a6fa5;padding:1px 8px;border-radius:12px;margin-bottom:8px;font-weight:600}
+.week-quest{border:2px solid #e8d9a0;background:linear-gradient(135deg,#fffdf4,#faf5e4)}
+.week-quest .mon-reward{color:#a07717}
+
+/* BOSS战 */
+.boss-head{display:flex;gap:18px;align-items:center;margin-bottom:14px}
+.boss-ico{font-size:60px}
+.boss-name{font-size:19px;font-weight:800}
+.boss-hp{height:16px;background:#f3e0dd;border-radius:8px;overflow:hidden;margin-top:8px}
+.boss-hp-fill{height:100%;background:linear-gradient(90deg,#c0504d,#e07068);transition:width .6s}
+
+/* 宝箱 */
+.chest{cursor:pointer;font-size:52px;display:inline-block;transition:transform .2s;user-select:none}
+.chest:hover{transform:scale(1.15) rotate(-4deg)}
+.chest.open{animation:chestPop .5s}
+@keyframes chestPop{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(8deg)}100%{transform:scale(1)}}
+
+/* 商店 */
+.shop-item{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.shop-ico{font-size:34px;flex-shrink:0}
+.shop-info{flex:1}
+.shop-name{font-weight:700;font-size:14px}
+.shop-desc{font-size:12px;color:var(--ink-soft)}
+.shop-price{font-weight:800;color:#b8860b;font-size:15px;flex-shrink:0}
+.shop-item.owned{opacity:.55}
+.shop-item.locked{opacity:.5}
+.equip-btn{flex-shrink:0}
+
+/* 升级庆典 / 结算弹层 */
+.overlay{position:fixed;inset:0;background:rgba(15,20,26,.78);z-index:150;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+.panel{width:480px;background:#fff;border-radius:20px;padding:30px 34px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.5);max-height:88vh;overflow-y:auto}
+.panel h2{font-size:21px;margin-bottom:6px}
+.panel .sub{font-size:13px;color:var(--ink-soft)}
+.reward-list{text-align:left;margin:18px 0;background:var(--accent-light);border-radius:12px;padding:14px 18px;font-size:14px}
+.reward-list .kv{border-color:rgba(0,0,0,.06)}
+.fireworks{font-size:40px;letter-spacing:8px;animation:fw 1.2s infinite}
+@keyframes fw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.08)}}
+.lv-big{font-size:64px;font-weight:900;color:var(--accent);line-height:1.2;margin:8px 0;background:linear-gradient(180deg,var(--accent),#7fc2a4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.panel-close{margin-top:14px}
+.chest-anim{font-size:88px;margin:14px 0;cursor:pointer;display:inline-block;transition:transform .2s}
+.chest-anim:hover{transform:scale(1.08)}
+.loot-ico{font-size:56px;margin:6px 0;animation:fw 1s 2}
+
+/* 数字飘字 */
+.float-txt{position:fixed;font-weight:900;font-size:22px;color:#f0c75e;text-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;z-index:300;animation:floatUp 1.6s forwards}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-14px) scale(1.15)}100%{opacity:0;transform:translateY(-90px) scale(1)}}
+@media (max-width:900px){
+  .grid-3{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .badge-grid{grid-template-columns:repeat(3,1fr)}
+  .sidebar{display:none}
+  .dep-row{grid-template-columns:80px 1fr 110px}
+  .mini-gain{grid-column:2/4}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 开场向导 ============ -->
+<div class="wizard" id="wizard">
+  <div class="wiz-box">
+    <div class="wiz-dots"><div class="wiz-dot on" id="dot0"></div><div class="wiz-dot" id="dot1"></div><div class="wiz-dot" id="dot2"></div></div>
+
+    <div class="wiz-step active" id="wstep0">
+      <h2>欢迎，未来的董事长</h2>
+      <p class="sub">在正式开张之前，请登记你的公司信息。记住：这家公司 100% 属于你。</p>
+      <label class="f">CEO 姓名（你的名字）</label>
+      <input type="text" id="w-ceo" placeholder="例如：王小明">
+      <label class="f">公司名称（随便起，够酷就行）</label>
+      <input type="text" id="w-company" placeholder="例如：小明神速成长集团">
+    </div>
+
+    <div class="wiz-step" id="wstep1">
+      <h2>选一个公司 Logo 和主题色</h2>
+      <p class="sub">这是你的公司，你说了算。以后也可以在设置里换。</p>
+      <label class="f">公司 Logo</label>
+      <div class="logo-opts" id="logo-opts"></div>
+      <label class="f">主题色</label>
+      <div class="color-opts" id="color-opts"></div>
+    </div>
+
+    <div class="wiz-step" id="wstep2">
+      <h2>公司经营手册</h2>
+      <p class="sub">三条铁律，看懂了就开张。</p>
+      <ul class="wiz-rules">
+        <li><b>这家公司是你的。</b>你上学这些年攒下的每一分能力，都是往自己的公司里投资，不是给爸妈打工。</li>
+        <li><b>唯一的对手是上周的你。</b>没有班级排名，只有公司环比——比上次进步就是盈利。</li>
+        <li><b>错题是 Bug，不是罪。</b>考试考砸了 = 收到一份用户反馈报告，修一个 Bug，公司能力值就涨。</li>
+      </ul>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-ghost" id="wiz-prev">上一步</button>
+      <button class="btn btn-primary" id="wiz-next">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 主应用 ============ -->
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="side-logo" id="s-logo">🚀</div>
+      <div>
+        <div class="side-name" id="s-company">我的公司</div>
+        <div class="side-sub" id="s-ceo">CEO 加载中</div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-item active" data-page="dashboard"><span class="nav-ico">📊</span>总览</div>
+      <div class="nav-item" data-page="daily"><span class="nav-ico">📝</span>每日经营</div>
+      <div class="nav-item" data-page="arena"><span class="nav-ico">⚔️</span>怪兽猎场</div>
+      <div class="nav-item" data-page="projects"><span class="nav-ico">📦</span>项目交付</div>
+      <div class="nav-item" data-page="bugs"><span class="nav-ico">🐞</span>Bug 工单</div>
+      <div class="nav-item" data-page="shop"><span class="nav-ico">🛒</span>金币商店</div>
+      <div class="nav-item" data-page="badges"><span class="nav-ico">🏆</span>荣誉墙</div>
+      <div class="nav-item" data-page="board"><span class="nav-ico">🪑</span>董事会</div>
+      <div class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span>设置</div>
+    </nav>
+    <div class="side-ceo">当前职级<br><b id="s-title">实习 CEO</b><br><br><span id="s-gold">🪙 0</span> · <span id="s-lv">Lv.1</span></div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ===== 总览 ===== -->
+    <section class="page active" id="page-dashboard">
+      <h1 class="page-title">经营总览</h1>
+      <p class="page-desc" id="dash-date"></p>
+
+      <div class="hero grid grid-2" style="margin-bottom:16px">
+        <div class="card hero-ceo">
+          <div class="avatar" id="h-avatar">🚀</div>
+          <div style="flex:1">
+            <div class="t" id="h-title">实习 CEO</div>
+            <div class="p" id="h-next">距离下一次晋升：—</div>
+            <div class="bar"><div class="bar-fill" id="h-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="card hero-flame">
+          <div class="flame-num" id="h-flame">🔥 0</div>
+          <div class="flame-label" id="h-flame-label">连续经营天数</div>
+          <div class="flame-best" id="h-flame-best">历史最佳：0 天</div>
+        </div>
+      </div>
+
+      <h2 class="sec-title">🏬 三大事业部</h2>
+      <div class="grid grid-3" id="dep-cards"></div>
+
+      <h2 class="sec-title">📈 最近 7 天能力值进账</h2>
+      <div class="card"><div class="chart" id="chart7"></div></div>
+
+      <h2 class="sec-title">📦 最新项目 & 🐞 待修 Bug</h2>
+      <div class="grid grid-2">
+        <div class="card" id="dash-project"></div>
+        <div class="card" id="dash-bugs"></div>
+      </div>
+    </section>
+
+    <!-- ===== 每日经营 ===== -->
+    <section class="page" id="page-daily">
+      <h1 class="page-title">每日经营</h1>
+      <p class="page-desc">每天 1 分钟，给各事业部注资。数据只有你自己能看到、能改。</p>
+
+      <div class="card">
+        <label class="f">日期</label>
+        <input type="date" id="d-date">
+
+        <label class="f">各事业部今日投入（分钟）+ 专注程度</label>
+        <div id="d-deps"></div>
+        <p class="hint">换算规则：能力值 = 分钟 ÷ 10 × 专注系数（深度专注 ×1.5，一般 ×1.0，分心 ×0.7）。每部每日上限 3 点，防止刷分 😏</p>
+
+        <label class="f">今日加分项</label>
+        <div id="d-bonus"></div>
+
+        <label class="f">一句话经营日志（今天公司运转得怎么样？）</label>
+        <textarea id="d-note" placeholder="例如：数学错题订正完，卡在应用题理解；语文课文背了一半。"></textarea>
+
+        <div class="preview">
+          <span>今日预计进账</span>
+          <span><b id="d-preview">+0.0</b> 能力值</span>
+        </div>
+        <button class="btn btn-primary" id="d-save">💾 记入今日账本</button>
+        <button class="btn btn-danger btn-sm" id="d-del" style="display:none;margin-left:10px">删除今日记录</button>
+      </div>
+
+      <h2 class="sec-title">📖 近期账本</h2>
+      <div class="card" id="d-history"></div>
+    </section>
+
+    <!-- ===== 项目交付 ===== -->
+    <section class="page" id="page-projects">
+      <div id="proj-list-view">
+        <h1 class="page-title">项目交付</h1>
+        <p class="page-desc">考试 = 项目交付。不跟别人比，只跟自己的上一单比。环比为正就是盈利。</p>
+
+        <div class="card">
+          <h2 class="sec-title">🆕 登记一次项目交付</h2>
+          <div class="grid grid-3">
+            <div>
+              <label class="f">项目名称</label>
+              <input type="text" id="p-name" placeholder="例如：数学第三单元测验">
+            </div>
+            <div>
+              <label class="f">交付日期</label>
+              <input type="date" id="p-date">
+            </div>
+            <div>
+              <label class="f">所属板块</label>
+              <select id="p-dep">
+                <option value="全科">全科</option>
+                <option value="语文">语文</option>
+                <option value="数学">数学</option>
+                <option value="英语">英语</option>
+              </select>
+            </div>
+          </div>
+          <label class="f">项目目标（你自己定，定多少都行——自己定的才算数）</label>
+          <input type="text" id="p-goal" placeholder="例如：计算题不丢分">
+          <div class="grid grid-2">
+            <div>
+              <label class="f">分数（选填，不填就不算）</label>
+              <input type="number" id="p-score" placeholder="例如：92">
+            </div>
+            <div>
+              <label class="f">自我交付评价（选填）</label>
+              <select id="p-self">
+                <option value="">不评价</option>
+                <option value="up">超预期交付</option>
+                <option value="flat">正常交付</option>
+                <option value="down">未达预期</option>
+              </select>
+            </div>
+          </div>
+          <label class="f">复盘笔记（选填）</label>
+          <textarea id="p-note" placeholder="哪里做得好？哪里翻车了？下次交付前要准备什么？"></textarea>
+          <div style="margin-top:16px"><button class="btn btn-primary" id="p-save">📦 交付归档</button></div>
+        </div>
+
+        <h2 class="sec-title">📜 交付记录</h2>
+        <div id="p-list"></div>
+      </div>
+
+      <div id="proj-detail-view" style="display:none">
+        <span class="back-link" id="p-back">← 返回交付记录</span>
+        <div class="card" id="p-detail"></div>
+        <div class="card" style="margin-top:16px">
+          <h2 class="sec-title">🐞 把这次交付的错题登记成 Bug</h2>
+          <p class="hint" style="margin-bottom:8px">一行一条，写清楚错在哪（Bug 描述越清楚越好修）。登记进来的每个 Bug，修好后都给对应事业部 +0.2 能力值。</p>
+          <textarea id="p-bugs" placeholder="例如：&#10;英语：三单动词忘加s&#10;数学：单位换算看错"></textarea>
+          <div style="margin-top:12px"><button class="btn btn-gold" id="p-bugsave">🐞 登记为 Bug 工单</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Bug 工单 ===== -->
+    <section class="page" id="page-bugs">
+      <h1 class="page-title">Bug 工单</h1>
+      <p class="page-desc">错题不是罪，是还没修复的 Bug。每修好一个，公司能力值 +0.2，公司变强。</p>
+
+      <div class="card">
+        <div class="grid grid-2">
+          <div>
+            <label class="f">所属部门</label>
+            <select id="b-dep">
+              <option value="语文">语文</option>
+              <option value="数学">数学</option>
+              <option value="英语">英语</option>
+              <option value="全科">全科</option>
+            </select>
+          </div>
+          <div>
+            <label class="f">Bug 描述</label>
+            <input type="text" id="b-desc" placeholder="例如：英语——三单动词忘加s">
+          </div>
+        </div>
+        <div style="margin-top:14px"><button class="btn btn-primary" id="b-save">🐞 提交工单</button></div>
+      </div>
+
+      <h2 class="sec-title">🛠 待修复（<span id="b-open-count">0</span>）</h2>
+      <div class="card" id="b-open"></div>
+
+      <h2 class="sec-title">✅ 已修复（<span id="b-fixed-count">0</span>）</h2>
+      <div class="card" id="b-fixed"></div>
+    </section>
+
+    <!-- ===== 怪兽猎场 ===== -->
+    <section class="page" id="page-arena">
+      <h1 class="page-title">⚔️ 怪兽猎场</h1>
+      <p class="page-desc">每天刷出 3 只小怪 + 1 个周挑战副本。打倒它们，金币经验全掉落。学习是你最锋利的武器。</p>
+
+      <div class="gold-bar card">
+        <div class="gold-item"><span class="gold-num" id="arena-gold">🪙 0</span>金币</div>
+        <div class="xp-wrap">
+          <div class="xp-top"><span>冒险者等级 <b id="arena-lv">Lv.1</b></span><span id="arena-xp">0 / 100 XP</span></div>
+          <div class="xp-track"><div class="xp-fill" id="arena-xpfill" style="width:0%"></div></div>
+        </div>
+        <div class="chest" id="arena-chest" title="点我开宝箱">🎁</div>
+        <div class="gold-item" style="text-align:right"><span style="font-size:13px" id="arena-keys">🔑 0</span><span>宝箱钥匙</span></div>
+      </div>
+
+      <h2 class="sec-title">👹 今日小怪（<span id="mon-count"></span>）</h2>
+      <div class="grid grid-3" id="monster-list"></div>
+
+      <h2 class="sec-title">🏰 本周副本 · 深渊挑战（每周一刷新）</h2>
+      <div id="week-quest-box"></div>
+    </section>
+
+    <!-- ===== 金币商店 ===== -->
+    <section class="page" id="page-shop">
+      <h1 class="page-title">🛒 金币商店</h1>
+      <p class="page-desc">全自动商店，CEO 自助购物。金币从小怪、副本、日常经营里来。</p>
+
+      <div class="gold-bar card">
+        <div class="gold-item"><span class="gold-num" id="shop-gold">🪙 0</span>金币</div>
+        <div class="gold-item"><span style="font-size:13px" id="shop-keys">🔑 0</span>宝箱钥匙</div>
+      </div>
+
+      <h2 class="sec-title">🎮 现实奖励区（商店长：妈妈）</h2>
+      <p class="hint" style="margin-bottom:12px">这里的货架暂时空着——什么时候上架、上架什么，由投资人决定。 CEO 可以拿经营表现去谈判，跟妈妈申请上架新奖品。</p>
+      <div class="card"><div class="empty">货架筹备中……🛋️<br><span class="hint">想解锁这里？先在董事会里提出申请</span></div></div>
+
+      <h2 class="sec-title">✨ 虚拟装备区</h2>
+      <div class="grid grid-3" id="shop-list" style="align-items:start"></div>
+
+      <h2 class="sec-title">📜 购买记录</h2>
+      <div class="card" id="shop-log"></div>
+    </section>
+
+    <!-- ===== BOSS战弹层 ===== -->
+    <div class="overlay" id="ov-boss">
+      <div class="panel">
+        <div class="boss-head">
+          <div class="boss-ico" id="boss-ico">👹</div>
+          <div style="flex:1">
+            <div class="boss-name" id="boss-name">BOSS</div>
+            <div class="boss-hp"><div class="boss-hp-fill" id="boss-hpfill" style="width:100%"></div></div>
+            <div class="hint" style="margin-top:4px">备考 = 削血条 · 每天经营都在攻击它</div>
+          </div>
+        </div>
+        <div id="boss-body"></div>
+        <div id="boss-actions"></div>
+      </div>
+    </div>
+
+    <!-- ===== 升级庆典弹层 ===== -->
+    <div class="overlay" id="ov-levelup">
+      <div class="panel">
+        <div class="fireworks">🎉✨🎊✨🎉</div>
+        <h2 id="lu-title">升级啦！</h2>
+        <p class="sub" id="lu-sub"></p>
+        <div class="lv-big" id="lu-lv">Lv.2</div>
+        <div class="reward-list" id="lu-rewards"></div>
+        <button class="btn btn-gold panel-close" onclick="closeOverlay('ov-levelup')">✨ 帅气地继续经营</button>
+      </div>
+    </div>
+
+    <!-- ===== 结算弹层（宝箱/掉落） ===== -->
+    <div class="overlay" id="ov-reward">
+      <div class="panel">
+        <h2 id="rw-title">战利品结算</h2>
+        <p class="sub" id="rw-sub"></p>
+        <div class="chest-anim" id="rw-chest">🎁</div>
+        <div id="rw-loot"></div>
+        <div class="reward-list" id="rw-list"></div>
+        <button class="btn btn-primary panel-close" onclick="closeOverlay('ov-reward')">收下</button>
+      </div>
+    </div>
+
+    <!-- ===== 荣誉墙 ===== -->
+    <section class="page" id="page-badges">
+      <h1 class="page-title">荣誉墙</h1>
+      <p class="page-desc" id="badge-summary"></p>
+      <div class="badge-grid" id="badge-grid"></div>
+    </section>
+
+    <!-- ===== 董事会 ===== -->
+    <section class="page" id="page-board">
+      <h1 class="page-title">董事会周报</h1>
+      <p class="page-desc">每周日和爸妈开 10 分钟董事会。你主讲，他们只出资源。规则：他们不许评判分数。</p>
+
+      <div class="card">
+        <h2 class="sec-title">🪑 本周董事会记录</h2>
+        <label class="f">1️⃣ 本周公司哪里最赚钱（哪个板块进步最大）？</label>
+        <textarea id="bd-q1" placeholder="例如：英语单词打卡全部完成"></textarea>
+        <label class="f">2️⃣ 下周想主攻哪个项目？</label>
+        <textarea id="bd-q2" placeholder="例如：数学应用题专项，每天2道"></textarea>
+        <label class="f">3️⃣ 需要投资人追加什么资源？</label>
+        <textarea id="bd-q3" placeholder="例如：想要一本应用题练习册 / 周六下午陪练"></textarea>
+        <label class="f">董事会日期</label>
+        <input type="date" id="bd-date">
+        <div style="margin-top:16px"><button class="btn btn-primary" id="bd-save">🪑 归档本次董事会</button></div>
+      </div>
+
+      <h2 class="sec-title">📋 历次董事会纪要</h2>
+      <div id="bd-list"></div>
+    </section>
+
+    <!-- ===== 设置 ===== -->
+    <section class="page" id="page-settings">
+      <h1 class="page-title">设置</h1>
+      <p class="page-desc">公司信息、数据备份。</p>
+
+      <div class="card">
+        <h2 class="sec-title">🏢 公司信息</h2>
+        <div class="grid grid-2">
+          <div>
+            <label class="f">CEO 姓名</label>
+            <input type="text" id="set-ceo">
+          </div>
+          <div>
+            <label class="f">公司名称</label>
+            <input type="text" id="set-company">
+          </div>
+        </div>
+        <label class="f">公司 Logo</label>
+        <div class="logo-opts" id="set-logos"></div>
+        <label class="f">主题色</label>
+        <div class="color-opts" id="set-colors"></div>
+        <div style="margin-top:16px"><button class="btn btn-primary" id="set-save">保存</button></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2 class="sec-title">💾 数据备份</h2>
+        <p class="hint" style="margin-bottom:12px">公司账本存在这台电脑的浏览器里。换电脑 / 换浏览器前记得导出备份。</p>
+        <button class="btn btn-ghost" id="set-export">📤 导出公司数据</button>
+        <label class="btn btn-ghost" style="cursor:pointer">📥 导入数据<input type="file" id="set-import" accept=".json" style="display:none"></label>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2 class="sec-title">🔒 投资人（爸妈）须知</h2>
+        <div class="parent-rule">
+          <b>规则一：只看季报，不看流水。</b>每日经营数据归 CEO 所有，爸妈不翻账本、不追问今天打卡了没。<br>
+          <b>规则二：只谈过程，不评判分数。</b>董事会上唯一的话题是"哪里进步、下周主攻什么、需要什么资源"。分数和排名不出现在会议里。<br>
+          <b>规则三：环比就是胜利。</b>只要比上一次交付好，就是盈利。公司暂时亏损（退步）时，投资人做的是追加支持，不是撤资责备。<br>
+          <b>规则四：慢就是快。</b>公司经营是长期主义。他哪怕一周只多 0.5 点能力值，一年也净增 26 点。着急的是投资人吃亏，不是 CEO。
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2 class="sec-title">⚠️ 危险操作</h2>
+        <button class="btn btn-danger" id="set-reset">注销并清空整家公司（不可恢复）</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-ico">🎉</span><span id="toast-msg"></span></div>
+
+<script>
+/* ================================================================
+   我的能力公司 · 单文件版
+   数据存于浏览器 localStorage，无需服务器
+================================================================ */
+
+// ---------- 常量与规则 ----------
+var STORE_KEY = 'ceoAcademy_v2';
+
+var DEPTS = ['语文', '数学', '英语'];
+var FOCUS = { deep: { label: '深度专注', factor: 1.5 }, normal: { label: '一般', factor: 1.0 }, easy: { label: '有点分心', factor: 0.7 } };
+
+var DEP_LEVELS = [
+  { min: 0, name: '初创团队' },
+  { min: 50, name: '骨干部门' },
+  { min: 100, name: '核心部门' },
+  { min: 180, name: '王牌部门' },
+  { min: 300, name: '行业标杆' }
+];
+
+var CEO_LEVELS = [
+  { min: 0, name: '实习 CEO' },
+  { min: 60, name: '正式 CEO' },
+  { min: 150, name: '资深 CEO' },
+  { min: 300, name: '总裁' },
+  { min: 550, name: '董事长' },
+  { min: 900, name: '集团主席' }
+];
+
+var BONUS_ITEMS = [
+  { id: 'hw', label: '今日作业按时完成、没有应付', power: 0.3 },
+  { id: 'extra', label: '主动加练 ≥ 20 分钟（没人要求）', power: 0.5 },
+  { id: 'review', label: '预习 / 复习了明天的内容', power: 0.3 },
+  { id: 'fix', label: '订正错题（每题 +0.1）', power: 0.1, count: true },
+  { id: 'read', label: '课外阅读 ≥ 20 分钟', power: 0.3 }
+];
+
+var LOGOS = ['🚀', '🐉', '🦁', '🦅', '⚡', '🔥', '💎', '🌟', '🤖', '🦊'];
+var COLORS = [
+  { hex: '#1a6b4a', name: '森林绿' },
+  { hex: '#1f5c8b', name: '深海蓝' },
+  { hex: '#6b3fa0', name: '帝王紫' },
+  { hex: '#b3402e', name: '热血红' },
+  { hex: '#8a6d1d', name: '鎏金' }
+];
+
+var BADGES = [
+  { id: 'open', ico: '🎊', name: '公司开张', desc: '完成第一次每日经营' },
+  { id: 'streak7', ico: '🔥', name: '一周连营', desc: '连续经营 7 天' },
+  { id: 'streak30', ico: '🌋', name: '月度连营', desc: '连续经营 30 天' },
+  { id: 'triple', ico: '⚡', name: '三线作战', desc: '单日三大部门同时投入' },
+  { id: 'deep60', ico: '🧠', name: '深度工作', desc: '单日深度专注累计 60 分钟' },
+  { id: 'bug1', ico: '🔧', name: '首个 Bug 修复', desc: '修好第一个错题 Bug' },
+  { id: 'bug10', ico: '🛠', name: 'Bug 克星', desc: '累计修复 10 个 Bug' },
+  { id: 'bug50', ico: '🏆', name: 'Bug 大师', desc: '累计修复 50 个 Bug' },
+  { id: 'profit', ico: '📈', name: '公司盈利', desc: '一次项目交付环比为正' },
+  { id: 'win3', ico: '👑', name: '三连胜', desc: '连续 3 次交付环比为正' },
+  { id: 'total100', ico: '💰', name: '百家公司', desc: '总能力值达到 100' },
+  { id: 'total300', ico: '🏦', name: '行业巨头', desc: '总能力值达到 300' },
+  { id: 'active10', ico: '💪', name: '十次主动加练', desc: '累计 10 次主动加练' },
+  { id: 'ceo3', ico: '🎖', name: '资深 CEO', desc: '职级晋升到资深 CEO' }
+];
+
+// ---------- 状态 ----------
+var state = null;
+
+function defaultState() {
+  return {
+    profile: { ceo: '', company: '', logo: '🚀', color: '#1a6b4a', createdAt: todayStr() },
+    daily: [],
+    projects: [],
+    bugs: [],
+    board: [],
+    badges: {},
+    // ---- 游戏层 ----
+    game: {
+      xp: 0, lv: 1, gold: 0, keys: 0,
+      monsters: {},      // { '2026-10-15': [ {id,type,dep,goalMin,hp,done} ] }
+      weekQuest: null,   // { weekKey, goalFix, done }
+      shopOwned: {},     // { itemId: {date} }
+      equipped: null,    // itemId
+      shopLog: []
+    }
+  };
+}
+
+function load() {
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      state = JSON.parse(raw);
+      // v1 -> v2 迁移
+      if (!state.game) state.game = defaultState().game;
+      return;
+    }
+  } catch (e) { }
+  state = defaultState();
+}
+
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function r1(n) { return Math.round(n * 10) / 10; }
+function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ---------- 核心计算 ----------
+function dailyGainOf(entry) {
+  var total = 0;
+  DEPTS.forEach(function (dp) {
+    var d = entry.deps[dp];
+    if (d && d.min > 0) {
+      var g = Math.min(3, (d.min / 10) * FOCUS[d.focus].factor);
+      total += g;
+    }
+  });
+  BONUS_ITEMS.forEach(function (b) {
+    if (entry.bonus[b.id]) {
+      var c = entry.bonus[b.id];
+      total += b.count ? (b.power * c) : b.power;
+    }
+  });
+  return total;
+}
+
+function depPower(dep) {
+  var p = 0;
+  state.daily.forEach(function (e) {
+    var d = e.deps[dep];
+    if (d && d.min > 0) p += Math.min(3, (d.min / 10) * FOCUS[d.focus].factor);
+  });
+  // 加分项归入对应部门太难，加分项计入总能力，各部门只算投入
+  state.bugs.forEach(function (b) { if (b.dep === dep && b.status === 'fixed') p += 0.2; });
+  return r1(p);
+}
+
+function totalPower() {
+  var t = 0;
+  DEPTS.forEach(function (dp) { t += depPower(dp); });
+  state.daily.forEach(function (e) {
+    BONUS_ITEMS.forEach(function (b) {
+      if (e.bonus[b.id]) t += b.count ? (b.power * e.bonus[b.id]) : b.power;
+    });
+  });
+  return r1(t);
+}
+
+function bonusTotal() {
+  var t = 0;
+  state.daily.forEach(function (e) {
+    BONUS_ITEMS.forEach(function (b) {
+      if (e.bonus[b.id]) t += b.count ? (b.power * e.bonus[b.id]) : b.power;
+    });
+  });
+  return r1(t);
+}
+
+function levelOf(arr, v) {
+  var cur = arr[0], next = null;
+  for (var i = 0; i < arr.length; i++) {
+    if (v >= arr[i].min) cur = arr[i];
+  }
+  var idx = arr.indexOf(cur);
+  if (idx < arr.length - 1) next = arr[idx + 1];
+  return { cur: cur, next: next, idx: idx };
+}
+
+function streakInfo() {
+  if (!state.daily.length) return { current: 0, best: 0, pauseDays: 0 };
+  var dates = state.daily.map(function (e) { return e.date; }).sort();
+  var best = 1, run = 1;
+  for (var i = 1; i < dates.length; i++) {
+    var gap = daysBetween(dates[i - 1], dates[i]);
+    run = (gap === 1) ? run + 1 : 1;
+    if (run > best) best = run;
+  }
+  var today = todayStr();
+  var last = dates[dates.length - 1];
+  var gapNow = daysBetween(last, today);
+  var current;
+  if (gapNow === 0) {
+    current = runCountEndingAt(dates, last);
+  } else if (gapNow === 1) {
+    current = runCountEndingAt(dates, last); // 今天还没记，昨天的连营仍有效
+  } else {
+    current = 0;
+  }
+  return { current: current, best: best, pauseDays: Math.max(0, gapNow - 1) };
+}
+
+function runCountEndingAt(dates, end) {
+  var run = 1;
+  for (var i = dates.length - 1; i > 0; i--) {
+    if (dates[i - 1] === shiftDate(dates[i], -1) && dates[i] <= end) run++; else break;
+  }
+  return run;
+}
+
+function shiftDate(ds, delta) {
+  var d = new Date(ds + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+
+// ---------- 徽章检测 ----------
+function checkBadges() {
+  var gained = [];
+  var add = function (id) {
+    if (!state.badges[id]) { state.badges[id] = todayStr(); gained.push(id); }
+  };
+  if (state.daily.length >= 1) add('open');
+  var st = streakInfo();
+  if (st.current >= 7 || st.best >= 7) add('streak7');
+  if (st.current >= 30 || st.best >= 30) add('streak30');
+  state.daily.forEach(function (e) {
+    var all3 = DEPTS.every(function (dp) { return e.deps[dp] && e.deps[dp].min > 0; });
+    if (all3) add('triple');
+    var deepMin = 0;
+    DEPTS.forEach(function (dp) { if (e.deps[dp] && e.deps[dp].focus === 'deep') deepMin += e.deps[dp].min; });
+    if (deepMin >= 60) add('deep60');
+    if (e.bonus && e.bonus.extra) add('active10');
+  });
+  var fixed = state.bugs.filter(function (b) { return b.status === 'fixed'; }).length;
+  if (fixed >= 1) add('bug1');
+  if (fixed >= 10) add('bug10');
+  if (fixed >= 50) add('bug50');
+  var scored = state.projects.filter(function (p) { return p.score != null && p.growth != null; });
+  if (scored.some(function (p) { return p.growth > 0; })) add('profit');
+  var winRun = 0, maxWin = 0;
+  scored.forEach(function (p) {
+    if (p.growth > 0) { winRun++; if (winRun > maxWin) maxWin = winRun; } else winRun = 0;
+  });
+  if (maxWin >= 3) add('win3');
+  var t = totalPower();
+  if (t >= 100) add('total100');
+  if (t >= 300) add('total300');
+  var extraCount = state.daily.filter(function (e) { return e.bonus && e.bonus.extra; }).length;
+  if (extraCount >= 10) add('active10');
+  if (t >= 150) add('ceo3');
+  if (gained.length) { save(); }
+  return gained;
+}
+
+// ---------- 渲染 ----------
+function render() {
+  renderSide();
+  renderDashboard();
+  renderDaily();
+  renderProjects();
+  renderBugs();
+  renderBadges();
+  renderBoard();
+  renderArena();
+  renderShop();
+  renderGameBar();
+  var gained = checkBadges();
+  if (gained.length) {
+    var b = BADGES.find(function (x) { return x.id === gained[0]; });
+    if (b) toast('🏅 解锁新徽章：' + b.name + '！');
+  }
+}
+
+function renderSide() {
+  var deco = '';
+  if (state.game.shopOwned.crown) deco += '👑';
+  var logoStr = (deco ? deco : '') + state.profile.logo;
+  if (state.game.shopOwned.frame2) logoStr += '🛡️';
+  if (state.game.shopOwned.pet1) logoStr += '🐶';
+  document.getElementById('s-logo').textContent = logoStr;
+  document.getElementById('s-company').textContent = (state.game.shopOwned.frame1 ? '『 ' : '') + (state.profile.company || '我的公司') + (state.game.shopOwned.frame1 ? ' 』' : '');
+  document.getElementById('s-ceo').textContent = 'CEO ' + (state.profile.ceo || '');
+  var lv = levelOf(CEO_LEVELS, totalPower());
+  document.getElementById('s-title').textContent = lv.cur.name;
+  document.documentElement.style.setProperty('--accent', state.profile.color);
+  // 派生浅色
+  document.documentElement.style.setProperty('--accent-light', hexToSoft(state.profile.color));
+}
+
+function hexToSoft(hex) {
+  var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  var mix = function (c) { return Math.round(c + (245 - c) * 0.88); };
+  return 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')';
+}
+
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = todayStr() + ' · ' + state.profile.company + ' · 经营第 ' + (daysBetween(state.profile.createdAt, todayStr()) + 1) + ' 天';
+
+  var t = totalPower();
+  var lv = levelOf(CEO_LEVELS, t);
+  document.getElementById('h-title').textContent = lv.cur.name;
+  var bar = document.getElementById('h-bar');
+  if (lv.next) {
+    var pct = ((t - lv.cur.min) / (lv.next.min - lv.cur.min)) * 100;
+    bar.style.width = Math.min(100, Math.max(2, pct)) + '%';
+    document.getElementById('h-next').textContent = '总能力值 ' + t + ' · 距离「' + lv.next.name + '」还差 ' + r1(lv.next.min - t);
+  } else {
+    bar.style.width = '100%';
+    document.getElementById('h-next').textContent = '总能力值 ' + t + ' · 已登顶，前无古人';
+  }
+  document.getElementById('h-avatar').textContent = state.profile.logo;
+
+  var st = streakInfo();
+  document.getElementById('h-flame').textContent = '🔥 ' + st.current;
+  if (st.pauseDays > 1 && st.current === 0) {
+    document.getElementById('h-flame-label').textContent = '暂停营业 ' + (st.pauseDays - 1) + ' 天 · 今天重新开张即可';
+  } else if (st.current === 0) {
+    document.getElementById('h-flame-label').textContent = '今天记录一下，就开张';
+  } else {
+    document.getElementById('h-flame-label').textContent = '连续经营天数';
+  }
+  document.getElementById('h-flame-best').textContent = '历史最佳：' + st.best + ' 天（不清零，永远有效）';
+
+  // 部门卡
+  var html = '';
+  DEPTS.forEach(function (dp) {
+    var p = depPower(dp);
+    var l = levelOf(DEP_LEVELS, p);
+    var pct = l.next ? ((p - l.cur.min) / (l.next.min - l.cur.min)) * 100 : 100;
+    var weekMin = 0;
+    var weekAgo = shiftDate(todayStr(), -6);
+    state.daily.forEach(function (e) {
+      if (e.date >= weekAgo && e.deps[dp] && e.deps[dp].min) weekMin += e.deps[dp].min;
+    });
+    html += '<div class="card dep-card"><div class="dep-head"><span class="dep-name">' + dp + '事业部</span><span class="dep-power">' + p + '</span></div>' +
+      '<span class="dep-level">' + l.cur.name + '</span>' +
+      '<div class="progress"><div class="progress-fill" style="width:' + Math.min(100, Math.max(2, pct)) + '%"></div></div>' +
+      '<div class="dep-week">本周投入 ' + weekMin + ' 分钟' + (l.next ? ' · 距「' + l.next.name + '」还差 ' + r1(l.next.min - p) : ' · 满级') + '</div></div>';
+  });
+  document.getElementById('dep-cards').innerHTML = html;
+
+  // 7 日图
+  var chart = '';
+  for (var i = 6; i >= 0; i--) {
+    var ds = shiftDate(todayStr(), -i);
+    var g = 0;
+    state.daily.forEach(function (e) { if (e.date === ds) g = r1(dailyGainOf(e)); });
+    var h = Math.min(110, g * 22);
+    var label = (g > 0 ? '+' + g : '');
+    chart += '<div class="chart-col"><div class="chart-bar" style="height:' + h + 'px' + (g > 0 ? '' : ';opacity:.15') + '"><span>' + label + '</span></div><div class="chart-day">' + ds.slice(5) + '</div></div>';
+  }
+  document.getElementById('chart7').innerHTML = chart;
+
+  // 最新项目
+  var pj = document.getElementById('dash-project');
+  if (state.projects.length) {
+    var p = state.projects[state.projects.length - 1];
+    pj.innerHTML = '<div style="font-size:13px;color:var(--ink-soft)">最近一次交付</div><div style="font-weight:700;font-size:16px;margin:4px 0">' + esc(p.name) + '</div>' + growthTagHtml(p) +
+      (p.goal ? '<div class="kv"><span>项目目标</span><span>' + esc(p.goal) + '</span></div>' : '') +
+      '<div class="kv"><span>日期</span><span>' + p.date + '</span></div>';
+  } else {
+    pj.innerHTML = '<div class="empty">还没有项目交付<br><span class="hint">下次考试考完，来这里归档</span></div>';
+  }
+
+  var openBugs = state.bugs.filter(function (b) { return b.status === 'open'; });
+  var bx = document.getElementById('dash-bugs');
+  if (openBugs.length) {
+    var bhtml = '<div style="font-size:13px;color:var(--ink-soft)">待修复 Bug</div>';
+    openBugs.slice(0, 5).forEach(function (b) {
+      bhtml += '<div class="bug-row"><span class="bug-dep">' + b.dep + '</span><span class="bug-desc">' + esc(b.desc) + '</span></div>';
+    });
+    if (openBugs.length > 5) bhtml += '<div class="hint" style="text-align:center">还有 ' + (openBugs.length - 5) + ' 个…</div>';
+    bhtml += '<p class="hint" style="margin-top:8px">修一个 = 对应部门 +0.2 能力值</p>';
+    bx.innerHTML = bhtml;
+  } else {
+    bx.innerHTML = '<div class="empty">Bug 全部清零 🎉<br><span class="hint">公司运转良好</span></div>';
+  }
+}
+
+function growthTagHtml(p) {
+  if (p.score != null && p.growth != null) {
+    if (p.growth > 0) return '<span class="tag tag-up">▲ 盈利 · 环比 +' + p.growth + ' 分</span> ';
+    if (p.growth < 0) return '<span class="tag tag-down">▼ 环比 ' + p.growth + ' 分 · 拿到反馈了</span> ';
+    return '<span class="tag tag-flat">— 持平</span> ';
+  }
+  if (p.self === 'up') return '<span class="tag tag-up">▲ 超预期交付</span> ';
+  if (p.self === 'down') return '<span class="tag tag-down">▼ 未达预期 · 反馈已到账</span> ';
+  if (p.self === 'flat') return '<span class="tag tag-flat">— 正常交付</span> ';
+  if (p.score != null) return '<span class="tag tag-new">首次计分</span> ';
+  return '';
+}
+
+function renderDaily() {
+  document.getElementById('d-date').value = todayStr();
+  buildDailyDeps();
+  buildDailyBonus();
+  loadDailyEntry(todayStr());
+  renderDailyHistory();
+
+  document.getElementById('d-date').onchange = function () { loadDailyEntry(this.value); };
+  document.getElementById('d-save').onclick = saveDaily;
+  document.getElementById('d-del').onclick = function () {
+    var ds = document.getElementById('d-date').value;
+    state.daily = state.daily.filter(function (e) { return e.date !== ds; });
+    save(); render();
+    toast('已删除 ' + ds + ' 的记录');
+  };
+}
+
+function buildDailyDeps() {
+  var html = '';
+  DEPTS.forEach(function (dp) {
+    html += '<div class="dep-row"><div class="dname">' + dp + '</div>' +
+      '<input type="number" min="0" max="600" id="dm-' + dp + '" placeholder="分钟" oninput="previewDaily()">' +
+      '<select id="df-' + dp + '" onchange="previewDaily()">' +
+      '<option value="normal">一般</option><option value="deep">深度专注</option><option value="easy">有点分心</option></select>' +
+      '<div class="mini-gain" id="dg-' + dp + '"></div></div>';
+  });
+  document.getElementById('d-deps').innerHTML = html;
+}
+
+function buildDailyBonus() {
+  var html = '';
+  BONUS_ITEMS.forEach(function (b) {
+    html += '<div class="bonus-item"><input type="checkbox" id="cb-' + b.id + '" onchange="previewDaily()">' +
+      '<label for="cb-' + b.id + '" style="cursor:pointer">' + b.label + '</label>' +
+      (b.count ? '<input type="number" min="0" max="99" id="cn-' + b.id + '" placeholder="题数" oninput="previewDaily()">' : '') +
+      '<span class="bp">+' + b.power + '</span></div>';
+  });
+  document.getElementById('d-bonus').innerHTML = html;
+}
+
+function collectDailyForm() {
+  var entry = {
+    date: document.getElementById('d-date').value,
+    deps: {}, bonus: {}, note: document.getElementById('d-note').value
+  };
+  DEPTS.forEach(function (dp) {
+    var min = parseInt(document.getElementById('dm-' + dp).value, 10) || 0;
+    var focus = document.getElementById('df-' + dp).value;
+    if (min > 0) entry.deps[dp] = { min: min, focus: focus };
+  });
+  BONUS_ITEMS.forEach(function (b) {
+    var c = document.getElementById('cb-' + b.id);
+    if (c && c.checked) {
+      entry.bonus[b.id] = b.count ? (parseInt(document.getElementById('cn-' + b.id).value, 10) || 0) : true;
+    }
+  });
+  return entry;
+}
+
+function previewDaily() {
+  var e = collectDailyForm();
+  var total = 0;
+  DEPTS.forEach(function (dp) {
+    var g = 0, el = document.getElementById('dg-' + dp);
+    if (e.deps[dp]) {
+      g = Math.min(3, (e.deps[dp].min / 10) * FOCUS[e.deps[dp].focus].factor);
+    }
+    if (el) el.textContent = g > 0 ? '+' + r1(g) : '';
+    total += g;
+  });
+  BONUS_ITEMS.forEach(function (b) {
+    if (e.bonus[b.id]) total += b.count ? b.power * e.bonus[b.id] : b.power;
+  });
+  document.getElementById('d-preview').textContent = '+' + r1(total);
+}
+
+function loadDailyEntry(ds) {
+  var e = state.daily.find(function (x) { return x.date === ds; });
+  buildDailyDeps();
+  buildDailyBonus();
+  document.getElementById('d-note').value = e ? (e.note || '') : '';
+  if (e) {
+    DEPTS.forEach(function (dp) {
+      if (e.deps[dp]) {
+        document.getElementById('dm-' + dp).value = e.deps[dp].min;
+        document.getElementById('df-' + dp).value = e.deps[dp].focus;
+      }
+    });
+    BONUS_ITEMS.forEach(function (b) {
+      if (e.bonus[b.id]) {
+        document.getElementById('cb-' + b.id).checked = true;
+        if (b.count) document.getElementById('cn-' + b.id).value = e.bonus[b.id];
+      }
+    });
+    document.getElementById('d-del').style.display = 'inline-flex';
+  } else {
+    document.getElementById('d-del').style.display = 'none';
+  }
+  previewDaily();
+}
+
+function saveDaily() {
+  var e = collectDailyForm();
+  if (!e.date) { toast('请选择日期'); return; }
+  var hasAny = Object.keys(e.deps).length > 0 || Object.keys(e.bonus).length > 0 || (e.note && e.note.trim());
+  if (!hasAny) { toast('今天还没投入，先记不了账哦'); return; }
+  // 奖励当日完成徽章的情况在 render 里检查
+  state.daily = state.daily.filter(function (x) { return x.date !== e.date; });
+  state.daily.push(e);
+  // 游戏层：首次记录当日才发钥匙（防重复编辑刷钥匙）
+  var isNewDay = !state._savedDates || state._savedDates.indexOf(e.date) < 0;
+  if (isNewDay) {
+    state.game.keys++;
+    state._savedDates = (state._savedDates || []).concat([e.date]);
+    if (state._savedDates.length > 40) state._savedDates = state._savedDates.slice(-40);
+  }
+  save(); render();
+  checkMonstersAfterDaily(e);
+  var st = streakInfo();
+  var fire = st.current > 1 ? ' 🔥连营 ' + st.current + ' 天' : '';
+  toast('今日 +' + r1(dailyGainOf(e)) + ' 能力值入账！🔑 +1' + fire);
+}
+
+function renderDailyHistory() {
+  var box = document.getElementById('d-history');
+  var list = state.daily.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 10);
+  if (!list.length) { box.innerHTML = '<div class="empty">账本还是空的，从今天开始记第一笔</div>'; return; }
+  var html = '';
+  list.forEach(function (e) {
+    var parts = [];
+    DEPTS.forEach(function (dp) {
+      if (e.deps[dp]) parts.push(dp + ' ' + e.deps[dp].min + '分·' + FOCUS[e.deps[dp].focus].label);
+    });
+    html += '<div class="kv"><span style="font-weight:700">' + e.date + '</span><span>+' + r1(dailyGainOf(e)) + '</span></div>' +
+      (parts.length ? '<div class="hint" style="padding:0 0 6px">' + esc(parts.join(' / ')) + '</div>' : '') +
+      (e.note ? '<div class="hint" style="padding:0 0 8px;color:var(--ink)">📝 ' + esc(e.note) + '</div>' : '<div style="height:6px"></div>');
+  });
+  box.innerHTML = html;
+}
+
+// ---------- 项目 ----------
+var currentProject = null;
+
+function renderProjects() {
+  document.getElementById('p-date').value = todayStr();
+  document.getElementById('p-save').onclick = saveProject;
+  document.getElementById('p-back').onclick = function () {
+    document.getElementById('proj-list-view').style.display = '';
+    document.getElementById('proj-detail-view').style.display = 'none';
+  };
+  document.getElementById('p-bugsave').onclick = saveProjectBugs;
+  renderProjectList();
+}
+
+function renderProjectList() {
+  var box = document.getElementById('p-list');
+  if (!state.projects.length) { box.innerHTML = '<div class="card"><div class="empty">还没有交付记录</div></div>'; return; }
+  var html = '';
+  state.projects.slice().reverse().forEach(function (p) {
+    html += '<div class="card project-item" style="margin-bottom:12px" data-pid="' + p.id + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">' +
+      '<div><b style="font-size:15px">' + esc(p.name) + '</b> <span class="bug-dep">' + p.dep + '</span></div>' +
+      '<div>' + growthTagHtml(p) + '<span class="hint">' + p.date + '</span></div></div>' +
+      (p.goal ? '<div class="hint" style="margin-top:6px">🎯 目标：' + esc(p.goal) + '</div>' : '') +
+      (p.score != null ? '<div class="hint" style="margin-top:2px">交付得分：' + p.score + '</div>' : '') +
+      '</div>';
+  });
+  box.innerHTML = html;
+  box.querySelectorAll('.project-item').forEach(function (el) {
+    el.onclick = function () { openProject(el.getAttribute('data-pid')); };
+  });
+}
+
+function saveProject() {
+  var name = document.getElementById('p-name').value.trim();
+  if (!name) { toast('给项目起个名字'); return; }
+  var scoreVal = document.getElementById('p-score').value.trim();
+  var score = scoreVal === '' ? null : parseFloat(scoreVal);
+  var dep = document.getElementById('p-dep').value;
+  // 找同部门上一次有分数的交付，算环比
+  var prev = null;
+  for (var i = state.projects.length - 1; i >= 0; i--) {
+    if (state.projects[i].dep === dep && state.projects[i].score != null) { prev = state.projects[i]; break; }
+  }
+  var growth = (score != null && prev) ? Math.round((score - prev.score) * 10) / 10 : null;
+  state.projects.push({
+    id: 'p' + Date.now(),
+    name: name,
+    date: document.getElementById('p-date').value || todayStr(),
+    dep: dep,
+    goal: document.getElementById('p-goal').value.trim(),
+    score: score,
+    growth: growth,
+    self: document.getElementById('p-self').value,
+    note: document.getElementById('p-note').value.trim()
+  });
+  save(); render();
+  var tag = growth != null ? (growth > 0 ? '公司盈利 📈' : '环比 ' + growth + ' · 反馈报告已到账') : '已归档';
+  toast('项目已归档：' + tag);
+  // BOSS 战结算
+  var savedP = state.projects[state.projects.length - 1];
+  savedP.bugIdsText = 'BOSS 战：' + esc(savedP.name) + ' · ' + (growth != null ? (growth > 0 ? '<b style="color:var(--up)">胜利</b> 🪙+15 XP+60' : '获得情报 🪙+5 XP+30') : 'BOSS 逃逸 🪙+5 XP+20');
+  openBossFight(savedP);
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-goal').value = '';
+  document.getElementById('p-score').value = '';
+  document.getElementById('p-note').value = '';
+  document.getElementById('p-self').value = '';
+}
+
+function openProject(pid) {
+  var p = state.projects.find(function (x) { return x.id === pid; });
+  if (!p) return;
+  currentProject = p;
+  var fixedIds = p.bugIds || [];
+  var bugs = state.bugs.filter(function (b) { return fixedIds.indexOf(b.id) >= 0; });
+  var html = '<h1 style="font-size:19px;margin-bottom:6px">' + esc(p.name) + ' <span class="bug-dep">' + p.dep + '</span></h1>' +
+    growthTagHtml(p) +
+    '<div class="divider"></div>' +
+    (p.goal ? '<div class="kv"><span>🎯 项目目标</span><span>' + esc(p.goal) + '</span></div>' : '') +
+    (p.score != null ? '<div class="kv"><span>交付得分</span><span>' + p.score + (p.growth != null ? '（上次 ' + findPrevScore(p) + '，环比 ' + (p.growth > 0 ? '+' : '') + p.growth + '）' : '（首次计分）') + '</span></div>' : '') +
+    '<div class="kv"><span>交付日期</span><span>' + p.date + '</span></div>' +
+    (p.note ? '<div class="divider"></div><div class="hint" style="color:var(--ink);white-space:pre-wrap">📋 ' + esc(p.note) + '</div>' : '');
+  if (bugs.length) {
+    html += '<div class="divider"></div><div style="font-size:13px;color:var(--ink-soft);margin-bottom:6px">本次交付关联 Bug</div>';
+    bugs.forEach(function (b) {
+      html += '<div class="bug-row"><span class="bug-dep">' + b.dep + '</span><span class="bug-desc' + (b.status === 'fixed' ? ' done' : '') + '">' + esc(b.desc) + '</span>' + (b.status === 'fixed' ? '<span class="tag tag-up">已修复</span>' : '<span class="tag tag-flat">待修复</span>') + '</div>';
+    });
+  }
+  document.getElementById('p-detail').innerHTML = html;
+  document.getElementById('proj-list-view').style.display = 'none';
+  document.getElementById('proj-detail-view').style.display = '';
+}
+
+function findPrevScore(p) {
+  for (var i = state.projects.length - 1; i >= 0; i--) {
+    var q = state.projects[i];
+    if (q !== p && q.dep === p.dep && q.score != null && q.date < p.date) return q.score;
+  }
+  return '—';
+}
+
+function saveProjectBugs() {
+  if (!currentProject) return;
+  var lines = document.getElementById('p-bugs').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  if (!lines.length) { toast('一行写一条 Bug'); return; }
+  currentProject.bugIds = currentProject.bugIds || [];
+  lines.forEach(function (ln) {
+    var dep = '全科', desc = ln;
+    if (ln.indexOf('：') > 0) {
+      var arr = ln.split('：');
+      if (['语文', '数学', '英语', '全科'].indexOf(arr[0]) >= 0) { dep = arr[0]; desc = arr.slice(1).join('：'); }
+    }
+    var id = 'b' + Date.now() + Math.floor(Math.random() * 1000);
+    state.bugs.push({ id: id, dep: dep, desc: desc, from: currentProject.name, status: 'open', created: todayStr() });
+    currentProject.bugIds.push(id);
+  });
+  save(); render();
+  toast('已登记 ' + lines.length + ' 个 Bug，去工单页一个个消灭它们');
+  document.getElementById('p-bugs').value = '';
+  openProject(currentProject.id);
+}
+
+// ---------- Bug ----------
+function renderBugs() {
+  document.getElementById('b-save').onclick = function () {
+    var desc = document.getElementById('b-desc').value.trim();
+    if (!desc) { toast('描述一下这个 Bug'); return; }
+    state.bugs.push({ id: 'b' + Date.now() + Math.floor(Math.random() * 1000), dep: document.getElementById('b-dep').value, desc: desc, from: '日常巡查', status: 'open', created: todayStr() });
+    save(); render();
+    toast('工单已提交');
+    document.getElementById('b-desc').value = '';
+  };
+  var open = state.bugs.filter(function (b) { return b.status === 'open'; });
+  var fixed = state.bugs.filter(function (b) { return b.status === 'fixed'; });
+  document.getElementById('b-open-count').textContent = open.length;
+  document.getElementById('b-fixed-count').textContent = fixed.length;
+
+  var oh = '';
+  if (!open.length) oh = '<div class="empty">没有待修 Bug 🎉</div>';
+  open.forEach(function (b) {
+    oh += '<div class="bug-row"><span class="bug-dep">' + b.dep + '</span><span class="bug-desc">' + esc(b.desc) + '</span>' +
+      '<button class="btn btn-sm btn-gold" data-fix="' + b.id + '">✅ 修复 (+0.2)</button></div>';
+  });
+  document.getElementById('b-open').innerHTML = oh;
+
+  var fh = '';
+  if (!fixed.length) fh = '<div class="empty">还没有修复记录</div>';
+  fixed.slice().reverse().forEach(function (b) {
+    fh += '<div class="bug-row"><span class="bug-dep">' + b.dep + '</span><span class="bug-desc done">' + esc(b.desc) + '</span><span class="hint">✅ ' + b.fixedDate + '</span></div>';
+  });
+  document.getElementById('b-fixed').innerHTML = fh;
+
+  document.querySelectorAll('[data-fix]').forEach(function (btn) {
+    btn.onclick = function () {
+      var b = state.bugs.find(function (x) { return x.id === this.getAttribute('data-fix'); }, this) || state.bugs.find(function (x) { return x.id === btn.getAttribute('data-fix'); });
+      if (b) {
+        b.status = 'fixed'; b.fixedDate = todayStr();
+        // 游戏层：修 Bug 奖励
+        addXp(10, true);
+        state.game.keys++;
+        save(); render();
+        toast('Bug 修复！' + b.dep + ' +0.2 能力值 · 🔑+1 · XP+10');
+      }
+    };
+  });
+}
+
+// ---------- 徽章 ----------
+function renderBadges() {
+  var unlocked = Object.keys(state.badges).length;
+  document.getElementById('badge-summary').textContent = '已解锁 ' + unlocked + ' / ' + BADGES.length + ' 枚徽章。徽章不会掉，永远属于公司。';
+  var html = '';
+  BADGES.forEach(function (b) {
+    var on = state.badges[b.id];
+    html += '<div class="badge' + (on ? '' : ' locked') + '"><div class="b-ico">' + b.ico + '</div><div class="b-name">' + b.name + '</div><div class="b-desc">' + b.desc + '</div>' + (on ? '<div class="b-date">' + on + ' 达成</div>' : '') + '</div>';
+  });
+  document.getElementById('badge-grid').innerHTML = html;
+}
+
+// ---------- 董事会 ----------
+function renderBoard() {
+  document.getElementById('bd-date').value = todayStr();
+  document.getElementById('bd-save').onclick = function () {
+    var e = {
+      date: document.getElementById('bd-date').value || todayStr(),
+      q1: document.getElementById('bd-q1').value.trim(),
+      q2: document.getElementById('bd-q2').value.trim(),
+      q3: document.getElementById('bd-q3').value.trim()
+    };
+    if (!e.q1 && !e.q2 && !e.q3) { toast('至少回答一个问题'); return; }
+    state.board.push(e);
+    save(); renderBoardList();
+    toast('本次董事会已归档');
+    document.getElementById('bd-q1').value = '';
+    document.getElementById('bd-q2').value = '';
+    document.getElementById('bd-q3').value = '';
+  };
+  renderBoardList();
+}
+
+function renderBoardList() {
+  var box = document.getElementById('bd-list');
+  if (!state.board.length) { box.innerHTML = '<div class="card"><div class="empty">还没有开过董事会</div></div>'; return; }
+  var html = '';
+  state.board.slice().reverse().forEach(function (b) {
+    html += '<div class="card board-item"><b style="font-size:14px">🪑 ' + b.date + ' 董事会</b>';
+    if (b.q1) html += '<div style="margin-top:8px"><div class="board-q">本周哪里最赚钱</div><div class="board-a">' + esc(b.q1) + '</div></div>';
+    if (b.q2) html += '<div style="margin-top:6px"><div class="board-q">下周主攻项目</div><div class="board-a">' + esc(b.q2) + '</div></div>';
+    if (b.q3) html += '<div style="margin-top:6px"><div class="board-q">需要的资源</div><div class="board-a">' + esc(b.q3) + '</div></div>';
+    html += '</div>';
+  });
+  box.innerHTML = html;
+}
+
+// ---------- 设置 ----------
+function renderSettings() {
+  document.getElementById('set-ceo').value = state.profile.ceo;
+  document.getElementById('set-company').value = state.profile.company;
+  buildLogoOpts('set-logos', state.profile.logo, function (v) { pickLogo = v; });
+  buildColorOpts('set-colors', state.profile.color, function (v) { pickColor = v; });
+  document.getElementById('set-save').onclick = function () {
+    state.profile.ceo = document.getElementById('set-ceo').value.trim() || state.profile.ceo;
+    state.profile.company = document.getElementById('set-company').value.trim() || state.profile.company;
+    if (pickLogo) state.profile.logo = pickLogo;
+    if (pickColor) state.profile.color = pickColor;
+    save(); render(); renderSettings();
+    toast('公司信息已更新');
+  };
+  document.getElementById('set-export').onclick = exportData;
+  document.getElementById('set-import').onchange = importData;
+  document.getElementById('set-reset').onclick = function () {
+    var a = confirm('确定注销整家公司？所有能力值、徽章、项目记录将全部消失，无法恢复。');
+    if (!a) return;
+    var b = confirm('再确认一次：真的要清空？建议先导出备份。');
+    if (!b) return;
+    localStorage.removeItem(STORE_KEY);
+    location.reload();
+  };
+}
+
+function exportData() {
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '我的能力公司-备份-' + todayStr() + '.json';
+  a.click();
+  toast('备份文件已导出');
+}
+
+function importData(ev) {
+  var f = ev.target.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var data = JSON.parse(reader.result);
+      if (!data.profile || !Array.isArray(data.daily)) throw new Error('bad');
+      state = data;
+      save(); render(); renderSettings();
+      toast('数据导入成功，公司恢复营业');
+    } catch (e) {
+      toast('导入失败：文件格式不对');
+    }
+  };
+  reader.readAsText(f);
+}
+
+// ---------- 开场向导 ----------
+var wizStep = 0, pickLogo = null, pickColor = null;
+
+function buildLogoOpts(containerId, selected, cb) {
+  var c = document.getElementById(containerId);
+  var html = '';
+  LOGOS.forEach(function (l) {
+    html += '<div class="logo-opt' + (l === selected ? ' on' : '') + '" data-v="' + l + '">' + l + '</div>';
+  });
+  c.innerHTML = html;
+  c.querySelectorAll('.logo-opt').forEach(function (el) {
+    el.onclick = function () {
+      c.querySelectorAll('.logo-opt').forEach(function (x) { x.classList.remove('on'); });
+      el.classList.add('on');
+      cb(el.getAttribute('data-v'));
+    };
+  });
+}
+
+function buildColorOpts(containerId, selected, cb) {
+  var c = document.getElementById(containerId);
+  var html = '';
+  COLORS.forEach(function (col) {
+    html += '<div class="color-opt' + (col.hex === selected ? ' on' : '') + '" data-v="' + col.hex + '" title="' + col.name + '" style="background:' + col.hex + '"></div>';
+  });
+  c.innerHTML = html;
+  c.querySelectorAll('.color-opt').forEach(function (el) {
+    el.onclick = function () {
+      c.querySelectorAll('.color-opt').forEach(function (x) { x.classList.remove('on'); });
+      el.classList.add('on');
+      cb(el.getAttribute('data-v'));
+    };
+  });
+}
+
+function initWizard() {
+  buildLogoOpts('logo-opts', '🚀', function (v) { pickLogo = v; });
+  buildColorOpts('color-opts', '#1a6b4a', function (v) { pickColor = v; });
+  document.getElementById('wiz-next').onclick = function () {
+    if (wizStep === 0) {
+      var ceo = document.getElementById('w-ceo').value.trim();
+      var company = document.getElementById('w-company').value.trim();
+      if (!ceo) { toast('CEO 得有个名字'); return; }
+      if (!company) { toast('公司得有个名字'); return; }
+    }
+    wizStep++;
+    if (wizStep > 2) { finishWizard(); return; }
+    updateWizard();
+  };
+  document.getElementById('wiz-prev').onclick = function () {
+    if (wizStep > 0) { wizStep--; updateWizard(); }
+  };
+}
+
+function updateWizard() {
+  for (var i = 0; i < 3; i++) {
+    document.getElementById('wstep' + i).classList.toggle('active', i === wizStep);
+    document.getElementById('dot' + i).classList.toggle('on', i <= wizStep);
+  }
+  document.getElementById('wiz-next').textContent = wizStep === 2 ? '🎉 公司正式开张' : '下一步';
+}
+
+function finishWizard() {
+  state.profile.ceo = document.getElementById('w-ceo').value.trim();
+  state.profile.company = document.getElementById('w-company').value.trim();
+  if (pickLogo) state.profile.logo = pickLogo;
+  if (pickColor) state.profile.color = pickColor;
+  save();
+  document.getElementById('wizard').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+  render();
+  toast('🎊 ' + state.profile.company + ' 正式开张！');
+}
+
+// ---------- toast ----------
+var toastTimer = null;
+function toast(msg) {
+  var t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
+}
+
+// ---------- 导航 ----------
+document.querySelectorAll('.nav-item').forEach(function (el) {
+  el.onclick = function () { gotoPage(el.getAttribute('data-page')); };
+});
+
+// ---------- 游戏层常量 ----------
+var XP_PER_LV = 100; // 每级所需经验（固定，简单直观）
+
+var MONSTER_POOL = [
+  { type: 'goblin', ico: '👹', name: '作业小鬼', desc: '按时完成今天的全部作业，不敷衍', check: 'hw' },
+  { type: 'slime', ico: '🟢', name: '专注史莱姆', desc: '任意一个部门深度专注 ≥ 30 分钟', check: 'deep30' },
+  { type: 'wolf', ico: '🐺', name: '加练之狼', desc: '主动加练 ≥ 20 分钟（没人要求）', check: 'extra' },
+  { type: 'bat', ico: '🦇', name: '错题蝙蝠', desc: '订正 5 道错题', check: 'fix5' },
+  { type: 'ghost', ico: '👻', name: '预习幽灵', desc: '预习或复习明天的内容', check: 'review' },
+  { type: 'owl', ico: '🦉', name: '阅读猫头鹰', desc: '课外阅读 ≥ 20 分钟', check: 'read' },
+  { type: 'dragonling', ico: '🐲', name: '三线小龙', desc: '今天三大部门都有投入', check: 'triple' }
+];
+var MON_REWARD = { gold: 5, xp: 25 };
+
+var WEEK_QUESTS = [
+  { ico: '🐙', name: '章鱼博士的疯狂测试', desc: '一周内修复 10 个错题 Bug', goal: 10, gold: 30, xp: 120 },
+  { ico: '🧟', name: '僵尸大军围城', desc: '本周连续经营 5 天（每天有打卡）', goal: 5, gold: 30, xp: 120 },
+  { ico: '🦂', name: '蝎子王的毒针阵', desc: '本周深度专注累计 ≥ 150 分钟', goal: 150, gold: 35, xp: 140 }
+];
+
+var SHOP_ITEMS = [
+  { id: 'frame1', ico: '🖼️', name: 'CEO 金相框', desc: '总览页面的公司名挂金框', price: 20 },
+  { id: 'frame2', ico: '🛡️', name: '冒险者披风', desc: '侧边栏 Logo 披上传说披风', price: 35 },
+  { id: 'pet1', ico: '🐶', name: '汪汪军师', desc: '侧边栏多一只忠诚的军师犬', price: 50 },
+  { id: 'pet2', ico: '🦉', name: '夜枭博士', desc: '总览页多一位智慧顾问', price: 60 },
+  { id: 'theme2', ico: '🌙', name: '夜幕主题', desc: '解锁深夜蓝黑配色（叠加在主题色上）', price: 80 },
+  { id: 'crown', ico: '👑', name: '王者之冠', desc: 'Logo 顶上加皇冠，全公司可见', price: 120 }
+];
+
+var CHEST_LOOT = [
+  { ico: '🪙', label: '金币', min: 8, max: 25, kind: 'gold' },
+  { ico: '💪', label: '经验药水', min: 10, max: 30, kind: 'xp' },
+  { ico: '🔑', label: '再抽一把钥匙', min: 0, max: 0, kind: 'key', chance: 0.25 }
+];
+
+// ---------- 游戏层：等级/经验/金币 ----------
+function addXp(amount, silent) {
+  var before = state.game.lv;
+  state.game.xp += amount;
+  while (state.game.xp >= XP_PER_LV) {
+    state.game.xp -= XP_PER_LV;
+    state.game.lv++;
+    state.game.gold += 10; // 升级礼金
+  }
+  if (state.game.lv > before) {
+    save();
+    showLevelUp(before, state.game.lv);
+    floatText('⬆ LEVEL UP!');
+  } else if (!silent) {
+    floatText('+' + amount + ' XP');
+  }
+  save();
+  renderGameBar();
+}
+
+function addGold(amount, silent) {
+  state.game.gold += amount;
+  save();
+  if (!silent) { floatText('+' + amount + ' 🪙'); renderGameBar(); }
+}
+
+function floatText(txt) {
+  var el = document.createElement('div');
+  el.className = 'float-txt';
+  el.textContent = txt;
+  el.style.left = (window.innerWidth / 2 - 30 + Math.random() * 60) + 'px';
+  el.style.top = (window.innerHeight / 2 - 40) + 'px';
+  document.body.appendChild(el);
+  setTimeout(function () { el.remove(); }, 1700);
+}
+
+function showLevelUp(from, to) {
+  document.getElementById('lu-title').textContent = '升级啦！ Lv.' + from + ' → Lv.' + to;
+  document.getElementById('lu-sub').textContent = '冒险者实力提升，公司同时获得升级礼金';
+  document.getElementById('lu-lv').textContent = 'Lv.' + to;
+  document.getElementById('lu-rewards').innerHTML =
+    '<div class="kv"><span>等级</span><span>Lv.' + from + ' → <b>Lv.' + to + '</b></span></div>' +
+    '<div class="kv"><span>升级礼金</span><span>🪙 +10</span></div>' +
+    '<div class="kv"><span>称号</span><span>' + lvTitle(to) + '</span></div>';
+  openOverlay('ov-levelup');
+}
+
+function lvTitle(lv) {
+  if (lv >= 40) return '传奇董事长';
+  if (lv >= 30) return '商界巨擘';
+  if (lv >= 20) return '企业大亨';
+  if (lv >= 12) return '金牌 CEO';
+  if (lv >= 8) return '明星 CEO';
+  if (lv >= 4) return '正式 CEO';
+  return '实习 CEO';
+}
+
+function renderGameBar() {
+  var g = state.game;
+  var xpPct = Math.min(100, (g.xp / XP_PER_LV) * 100);
+  ['arena', 'shop'].forEach(function (p) {
+    var e;
+    e = document.getElementById(p + '-gold'); if (e) e.textContent = '🪙 ' + g.gold;
+    e = document.getElementById(p + '-keys'); if (e) e.textContent = '🔑 ' + g.keys;
+  });
+  var e = document.getElementById('s-gold'); if (e) e.textContent = '🪙 ' + g.gold;
+  e = document.getElementById('s-lv'); if (e) e.textContent = 'Lv.' + g.lv + ' ' + lvTitle(g.lv);
+  e = document.getElementById('arena-lv'); if (e) e.textContent = 'Lv.' + g.lv;
+  e = document.getElementById('arena-xp'); if (e) e.textContent = g.xp + ' / ' + XP_PER_LV + ' XP';
+  e = document.getElementById('arena-xpfill'); if (e) e.style.width = xpPct + '%';
+}
+
+// ---------- 小怪任务 ----------
+function monsterTypeOfDate(ds, i) {
+  // 用日期做种子，每天固定刷 3 只（去重）
+  var seed = 0;
+  for (var j = 0; j < ds.length; j++) seed += ds.charCodeAt(j) * (i + 3);
+  var pool = MONSTER_POOL.slice();
+  var picked = [];
+  for (var k = 0; k < 3; k++) {
+    var idx = (seed * (k + 7) + k * 13) % pool.length;
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked;
+}
+
+function ensureMonsters(ds) {
+  if (!state.game.monsters[ds]) {
+    var types = monsterTypeOfDate(ds, 0);
+    state.game.monsters[ds] = types.map(function (t, i) {
+      return { id: ds + '-m' + i, type: t.type, done: false };
+    });
+  }
+  // 清理 14 天前的小怪数据
+  var keys = Object.keys(state.game.monsters);
+  if (keys.length > 14) {
+    keys.sort().slice(0, keys.length - 14).forEach(function (k) { delete state.game.monsters[k]; });
+  }
+  return state.game.monsters[ds];
+}
+
+function monsterProgress(m, entry) {
+  // entry = 当日打卡数据（可能为 null）
+  if (!entry) return { now: 0, goal: 1, done: false };
+  var def = MONSTER_POOL.find(function (p) { return p.type === m.type; });
+  var now = 0, goal = 1;
+  switch (def.check) {
+    case 'hw': now = entry.bonus.hw ? 1 : 0; goal = 1; break;
+    case 'extra': now = entry.bonus.extra ? 1 : 0; goal = 1; break;
+    case 'review': now = entry.bonus.review ? 1 : 0; goal = 1; break;
+    case 'read': now = entry.bonus.read ? 1 : 0; goal = 1; break;
+    case 'fix5': now = entry.bonus.fix || 0; goal = 5; break;
+    case 'deep30':
+      var dm = 0;
+      DEPTS.forEach(function (dp) { if (entry.deps[dp] && entry.deps[dp].focus === 'deep') dm += entry.deps[dp].min; });
+      now = dm; goal = 30; break;
+    case 'triple':
+      var n = 0;
+      DEPTS.forEach(function (dp) { if (entry.deps[dp] && entry.deps[dp].min > 0) n++; });
+      now = n; goal = 3; break;
+  }
+  return { now: now, goal: goal, done: now >= goal };
+}
+
+function checkMonstersAfterDaily(entry) {
+  var ms = ensureMonsters(entry.date);
+  var killed = [];
+  ms.forEach(function (m) {
+    if (!m.done) {
+      var pr = monsterProgress(m, entry);
+      if (pr.done) {
+        m.done = true;
+        killed.push(MONSTER_POOL.find(function (p) { return p.type === m.type; }));
+      }
+    }
+  });
+  if (killed.length) {
+    addGold(MON_REWARD.gold * killed.length, true);
+    addXp(MON_REWARD.xp * killed.length, true);
+    save();
+    showMonsterLoot(killed);
+  }
+  // 周副本进度检查
+  checkWeekQuest();
+}
+
+function showMonsterLoot(killed) {
+  var lines = '';
+  var totalGold = MON_REWARD.gold * killed.length;
+  var totalXp = MON_REWARD.xp * killed.length;
+  killed.forEach(function (k) {
+    lines += '<div class="kv"><span>' + k.ico + ' ' + k.name + '</span><span>🪙+' + MON_REWARD.gold + ' · XP+' + MON_REWARD.xp + '</span></div>';
+  });
+  document.getElementById('rw-title').textContent = '⚔️ 战斗胜利！';
+  document.getElementById('rw-sub').textContent = '今日小怪被打倒，掉落已入账';
+  document.getElementById('rw-chest').style.display = 'none';
+  document.getElementById('rw-loot').innerHTML = '';
+  document.getElementById('rw-list').innerHTML = lines;
+  openOverlay('ov-reward');
+  floatText('🪙 +' + totalGold);
+}
+
+// ---------- 周副本 ----------
+function weekKeyOf(ds) {
+  var d = new Date(ds + 'T00:00:00');
+  var day = (d.getDay() + 6) % 7; // 周一=0
+  d.setDate(d.getDate() - day);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+
+function weekProgress() {
+  var wk = weekKeyOf(todayStr());
+  var dep = '语文'; // 任意部门累计
+  // 依据不同副本类型计算
+  var q = state.game.weekQuest;
+  if (!q || q.weekKey !== wk) return null;
+  var now = 0;
+  if (q.type === 0) {
+    now = state.bugs.filter(function (b) { return b.status === 'fixed' && b.fixedDate >= wk && b.fixedDate <= shiftDate(wk, 6); }).length;
+  } else if (q.type === 1) {
+    var cnt = 0;
+    for (var i = 0; i < 7; i++) {
+      var ds = shiftDate(wk, i);
+      if (state.daily.some(function (e) { return e.date === ds; })) cnt++;
+    }
+    now = cnt;
+  } else if (q.type === 2) {
+    var min = 0;
+    state.daily.forEach(function (e) {
+      if (e.date >= wk && e.date <= shiftDate(wk, 6)) {
+        DEPTS.forEach(function (dp) { if (e.deps[dp] && e.deps[dp].focus === 'deep') min += e.deps[dp].min; });
+      }
+    });
+    now = min;
+  }
+  return { now: now, goal: q.goal, done: q.done };
+}
+
+function ensureWeekQuest() {
+  var wk = weekKeyOf(todayStr());
+  if (!state.game.weekQuest || state.game.weekQuest.weekKey !== wk) {
+    // 按周种子选副本
+    var seed = 0;
+    for (var i = 0; i < wk.length; i++) seed += wk.charCodeAt(i);
+    var type = seed % WEEK_QUESTS.length;
+    var def = WEEK_QUESTS[type];
+    state.game.weekQuest = { weekKey: wk, type: type, goal: def.goal, done: false };
+    save();
+  }
+  return state.game.weekQuest;
+}
+
+function checkWeekQuest() {
+  var q = ensureWeekQuest();
+  if (q.done) return;
+  var pr = weekProgress();
+  if (pr && pr.now >= pr.goal) {
+    q.done = true;
+    var def = WEEK_QUESTS[q.type];
+    addGold(def.gold, true);
+    addXp(def.xp, true);
+    save();
+    showWeekQuestWin(def);
+  }
+}
+
+function showWeekQuestWin(def) {
+  document.getElementById('rw-title').textContent = '🏰 副本通关！';
+  document.getElementById('rw-sub').textContent = '本周深渊挑战完成，大额战利品到账';
+  document.getElementById('rw-chest').style.display = 'none';
+  document.getElementById('rw-loot').innerHTML = '<div class="loot-ico">' + def.ico + '</div>';
+  document.getElementById('rw-list').innerHTML =
+    '<div class="kv"><span>' + def.name + '</span><span>通关</span></div>' +
+    '<div class="kv"><span>掉落金币</span><span>🪙 +' + def.gold + '</span></div>' +
+    '<div class="kv"><span>掉落经验</span><span>+' + def.xp + ' XP</span></div>';
+  openOverlay('ov-reward');
+}
+
+// ---------- 宝箱 ----------
+function openChest() {
+  if (state.game.keys <= 0) { toast('没有钥匙了 🗝️ 钥匙靠打卡/修 Bug/打小怪获得'); return; }
+  state.game.keys--;
+  // 掉落计算
+  var loot = CHEST_LOOT[0];
+  var amount = loot.min + Math.floor(Math.random() * (loot.max - loot.min + 1));
+  state.game.gold += amount;
+  var extra = '';
+  if (Math.random() < CHEST_LOOT[2].chance) { state.game.keys++; extra = '<div class="kv"><span>🔑 欧气爆发</span><span>钥匙 +1</span></div>'; }
+  // 小概率掉经验药水
+  var xpGain = 0;
+  if (Math.random() < 0.4) {
+    xpGain = 10 + Math.floor(Math.random() * 21);
+    addXp(xpGain, true);
+  }
+  save(); renderGameBar(); renderArena();
+  document.getElementById('rw-title').textContent = '🎁 宝箱已开启';
+  document.getElementById('rw-sub').textContent = '';
+  var chest = document.getElementById('rw-chest');
+  chest.style.display = '';
+  chest.textContent = '🎁';
+  chest.onclick = null;
+  document.getElementById('rw-loot').innerHTML = '';
+  document.getElementById('rw-list').innerHTML =
+    '<div class="kv"><span>🪙 金币</span><span>+' + amount + '</span></div>' +
+    (xpGain ? '<div class="kv"><span>💪 经验药水</span><span>+' + xpGain + ' XP</span></div>' : '') +
+    extra;
+  openOverlay('ov-reward');
+  floatText('🪙 +' + amount);
+}
+
+// ---------- 商店 ----------
+function buyItem(id) {
+  var item = SHOP_ITEMS.find(function (s) { return s.id === id; });
+  if (!item) return;
+  if (state.game.shopOwned[id]) { toast('已经拥有啦'); return; }
+  if (state.game.gold < item.price) { toast('金币不够，去猎场打怪攒钱 💰'); return; }
+  state.game.gold -= item.price;
+  state.game.shopOwned[id] = todayStr();
+  state.game.equipped = state.game.equipped || id;
+  state.game.shopLog.unshift({ id: id, date: todayStr(), price: item.price });
+  save(); renderGameBar(); renderShop();
+  toast('已购入 ' + item.ico + ' ' + item.name + '，已自动装备');
+}
+
+function renderShop() {
+  var html = '';
+  SHOP_ITEMS.forEach(function (item) {
+    var owned = state.game.shopOwned[item.id];
+    html += '<div class="shop-item' + (owned ? ' owned' : '') + '">' +
+      '<span class="shop-ico">' + item.ico + '</span>' +
+      '<div class="shop-info"><div class="shop-name">' + item.name + '</div><div class="shop-desc">' + item.desc + (owned ? ' · ' + owned + ' 购入' : '') + '</div></div>' +
+      (owned ? '<span class="shop-price">已拥有</span>' :
+        '<span class="shop-price">🪙 ' + item.price + '</span><button class="btn btn-gold btn-sm equip-btn" data-buy="' + item.id + '">购买</button>') +
+      '</div>';
+  });
+  document.getElementById('shop-list').innerHTML = html;
+  document.querySelectorAll('[data-buy]').forEach(function (btn) {
+    btn.onclick = function () { buyItem(btn.getAttribute('data-buy')); };
+  });
+  var log = document.getElementById('shop-log');
+  if (!state.game.shopLog.length) { log.innerHTML = '<div class="empty">还没有购物记录</div>'; return; }
+  var lh = '';
+  state.game.shopLog.slice(0, 10).forEach(function (l) {
+    var item = SHOP_ITEMS.find(function (s) { return s.id === l.id; });
+    if (item) lh += '<div class="kv"><span>' + item.ico + ' ' + item.name + '</span><span>🪙 ' + l.price + ' · ' + l.date + '</span></div>';
+  });
+  log.innerHTML = lh;
+}
+
+// ---------- 猎场渲染 ----------
+function renderArena() {
+  var ds = todayStr();
+  var ms = ensureMonsters(ds);
+  var entry = state.daily.find(function (e) { return e.date === ds; });
+  var killed = ms.filter(function (m) { return m.done; }).length;
+  document.getElementById('mon-count').textContent = killed + ' / ' + ms.length + ' 已讨伐';
+
+  var html = '';
+  ms.forEach(function (m) {
+    var def = MONSTER_POOL.find(function (p) { return p.type === m.type; });
+    var pr = monsterProgress(m, entry);
+    var hpPct = m.done ? 0 : Math.max(8, 100 - (pr.now / pr.goal) * 100);
+    html += '<div class="card monster-card' + (m.done ? ' done' : '') + '">' +
+      (m.done ? '<span class="mon-badge-done">☠️</span>' : '') +
+      '<div class="mon-ico">' + def.ico + '</div>' +
+      '<div class="mon-name">' + def.name + '</div>' +
+      '<div class="mon-desc">' + def.desc + '</div>' +
+      '<div class="hp-track"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+      '<div class="hint" style="margin-top:4px">' + (m.done ? '已讨伐' : pr.now + ' / ' + pr.goal) + '</div>' +
+      '<div class="mon-reward" style="margin-top:8px">🪙 +' + MON_REWARD.gold + ' · XP +' + MON_REWARD.xp + '</div>' +
+      '<button class="btn ' + (m.done ? '' : 'btn-primary') + ' mon-kill" data-mon="' + m.id + '">' + (m.done ? '☠️ 战利品已收' : '在「每日经营」打卡即可攻击') + '</button>' +
+      '</div>';
+  });
+  document.getElementById('monster-list').innerHTML = html;
+  // 小怪按钮跳转每日经营
+  document.querySelectorAll('[data-mon]').forEach(function (b) {
+    b.onclick = function () { gotoPage('daily'); };
+  });
+
+  // 周副本
+  var q = ensureWeekQuest();
+  var def = WEEK_QUESTS[q.type];
+  var pr = weekProgress();
+  var wq = document.getElementById('week-quest-box');
+  var pct = pr ? Math.min(100, (pr.now / pr.goal) * 100) : 0;
+  wq.innerHTML = '<div class="card week-quest' + (q.done ? ' done' : '') + '" style="' + (q.done ? 'opacity:.6' : '') + '">' +
+    '<div class="boss-head"><div class="boss-ico">' + def.ico + '</div><div style="flex:1">' +
+    '<div class="quest-tag">周挑战 · 每周一刷新</div>' +
+    '<div class="boss-name">' + def.name + (q.done ? ' ✅ 已通关' : '') + '</div>' +
+    '<div class="hint" style="margin-top:2px">' + def.desc + '</div>' +
+    '<div class="boss-hp"><div class="boss-hp-fill" style="width:' + (100 - pct) + '%"></div></div>' +
+    '<div class="hint" style="margin-top:4px">进度 ' + (pr ? pr.now : 0) + ' / ' + q.goal + ' · 奖励 🪙' + def.gold + ' + ' + def.xp + 'XP</div>' +
+    '</div></div></div>';
+
+  var chest = document.getElementById('arena-chest');
+  chest.onclick = openChest;
+  chest.textContent = state.game.keys > 0 ? '🎁' : '🔒';
+  renderGameBar();
+}
+
+// ---------- BOSS 战（项目交付的战前/战后界面） ----------
+function openBossFight(project) {
+  var ico = '👹';
+  var hp = 100;
+  var isWin = project.growth != null ? project.growth > 0 : (project.self === 'up');
+  var body = '';
+  if (project.growth != null) {
+    hp = Math.max(5, 100 - project.growth * 5);
+    body = '<div class="hint" style="margin-bottom:10px">' + esc(project.name) + ' · ' + project.dep + '事业部 · ' + project.date + '</div>';
+    if (isWin) {
+      ico = '💀';
+      body += '<p style="font-size:15px;margin:10px 0">BOSS 被击败！公司环比 <b style="color:var(--up)">+' + project.growth + '</b>，盈利到账。</p>' +
+        '<p class="hint">掉落战利品：🪙 +15 · +60 XP</p>';
+      addGold(15, true); addXp(60, true);
+    } else {
+      body += '<p style="font-size:15px;margin:10px 0">BOSS 这回合赢了，但你拿到了它的<b>弱点情报</b>（错题报告）。修复关联 Bug，下次出招它就挡不住。</p>' +
+        '<p class="hint">安慰奖励：🪙 +5 · +30 XP（参战即有）</p>';
+      addGold(5, true); addXp(30, true);
+    }
+  } else {
+    body = '<div class="hint" style="margin-bottom:10px">' + esc(project.name) + ' · ' + project.date + '</div>' +
+      '<p style="font-size:15px;margin:10px 0">BOSS 逃跑了——这次没有计分，情报不足。没关系，下次交付记得填分数，好算环比战果。</p>' +
+      '<p class="hint">参战奖励：🪙 +5 · +20 XP</p>';
+    addGold(5, true); addXp(20, true);
+  }
+  document.getElementById('boss-ico').textContent = ico;
+  document.getElementById('boss-name').textContent = 'BOSS 战结算：' + project.name;
+  document.getElementById('boss-hpfill').style.width = hp + '%';
+  document.getElementById('boss-body').innerHTML = body;
+  document.getElementById('boss-actions').innerHTML =
+    '<div class="reward-list">' + project.bugIdsText + '</div>' +
+    '<div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap">' +
+    '<button class="btn btn-gold" onclick="bossToBugs()">🐞 把错题登记成 Bug（追击战）</button>' +
+    '<button class="btn btn-primary" onclick="closeOverlay(\'ov-boss\')">收兵</button></div>';
+  save();
+  openOverlay('ov-boss');
+}
+
+function bossToBugs() {
+  closeOverlay('ov-boss');
+  gotoPage('projects');
+}
+
+// ---------- 弹层与页面跳转 ----------
+function openOverlay(id) { document.getElementById(id).classList.add('show'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('show'); }
+
+function gotoPage(pid) {
+  document.querySelectorAll('.nav-item').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-page') === pid); });
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  document.getElementById('page-' + pid).classList.add('active');
+}
+
+// ---------- 启动 ----------
+load();
+ensureMonsters(todayStr());
+ensureWeekQuest();
+if (state.profile.ceo) {
+  document.getElementById('wizard').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+  render();
+} else {
+  initWizard();
+}
+renderSettings();
+</script>
+</body>
+</html>
