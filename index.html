@@ -36,6 +36,11 @@ nav{flex:1;padding:14px 10px}
 .nav-ico{width:20px;text-align:center}
 .side-ceo{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#8fa1b5}
 .side-ceo b{color:#f0c75e;font-size:13px}
+.side-user{padding:10px 20px 14px;border-top:1px solid rgba(255,255,255,.08)}
+.side-user-info{font-size:12px;color:#b6c2cf;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.side-role{font-size:10px;padding:1px 7px;border-radius:10px;background:rgba(240,199,94,.18);color:#f0c75e}
+.side-logout{margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,.08);border:none;border-radius:7px;color:#cfd8e3;font-size:12px;cursor:pointer;font-family:inherit}
+.side-logout:hover{background:rgba(255,255,255,.16)}
 
 /* ===== 主区 ===== */
 .main{flex:1;padding:26px 34px;max-width:1100px}
@@ -135,6 +140,22 @@ textarea{resize:vertical;min-height:64px}
 .board-item{margin-bottom:14px}
 .board-q{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:3px}
 .board-a{font-size:13.5px;color:var(--ink);white-space:pre-wrap}
+
+/* 登录/注册 */
+.auth-screen{position:fixed;inset:0;background:linear-gradient(140deg,#1f2933,#2c3a4a);z-index:120;display:flex;align-items:center;justify-content:center}
+.auth-screen.hide{display:none}
+.auth-box{width:420px;background:#fff;border-radius:20px;padding:32px 36px;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:92vh;overflow-y:auto}
+.auth-logo{font-size:44px;text-align:center}
+.auth-title{font-size:22px;text-align:center;margin:4px 0 2px}
+.auth-sub{font-size:12.5px;color:var(--ink-soft);text-align:center;margin-bottom:20px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:18px}
+.auth-tab{flex:1;padding:9px;border:1.5px solid var(--line);background:#fff;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit}
+.auth-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.auth-form{display:none}
+.auth-form.active{display:block}
+.auth-btn{width:100%;justify-content:center;margin-top:6px}
+.auth-err{color:var(--down);font-size:12.5px;min-height:18px;margin-top:6px}
+.auth-hint{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:12px;line-height:1.6}
 
 /* 开场向导 */
 .wizard{position:fixed;inset:0;background:linear-gradient(140deg,#1f2933,#2c3a4a);z-index:100;display:flex;align-items:center;justify-content:center}
@@ -281,6 +302,22 @@ textarea{resize:vertical;min-height:64px}
 .confetti-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:20px}
 .confetti-piece{position:absolute;width:10px;height:10px;top:-20px;animation:confettiFall 2.5s ease-in forwards}
 @keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotateZ(0)}100%{opacity:0;transform:translateY(500px) rotateZ(720deg)}}
+
+/* 管理后台表格 */
+.admin-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.admin-table th,.admin-table td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+.admin-table th{color:var(--ink-soft);font-weight:600;font-size:12.5px}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-stat{background:var(--accent-light);border-radius:12px;padding:16px;text-align:center}
+.admin-stat .as-num{font-size:26px;font-weight:800;color:var(--accent)}
+.admin-stat .as-label{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.admin-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.admin-row:last-child{border-bottom:none}
+.admin-row .ar-name{font-weight:700;font-size:14px}
+.admin-row .ar-meta{font-size:12px;color:var(--ink-soft)}
+.admin-row .ar-actions{margin-left:auto;display:flex;gap:6px}
+.role-badge{font-size:10px;padding:1px 8px;border-radius:10px;background:#eef1f8;color:#4a6fa5}
+.role-badge.admin{background:#fdf3e0;color:#a07717}
 @media (max-width:900px){
   .grid-3{grid-template-columns:1fr}
   .grid-2{grid-template-columns:1fr}
@@ -292,6 +329,51 @@ textarea{resize:vertical;min-height:64px}
 </style>
 </head>
 <body>
+
+<!-- ============ 登录 / 注册 ============ -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🏢</div>
+    <h1 class="auth-title">我的能力公司</h1>
+    <p class="auth-sub">CEO 经营式学习激励系统</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">登录</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">注册新账号</button>
+    </div>
+
+    <!-- 登录 -->
+    <div class="auth-form active" id="form-login">
+      <label class="f">用户名</label>
+      <input type="text" id="login-user" placeholder="输入你的用户名" autocomplete="username">
+      <label class="f">密码</label>
+      <input type="password" id="login-pass" placeholder="输入密码" autocomplete="current-password">
+      <div class="auth-err" id="login-err"></div>
+      <button class="btn btn-primary auth-btn" onclick="doLogin()"> 登录</button>
+      <div class="auth-hint">已有账号？直接登录。忘记密码请找管理员重置。</div>
+    </div>
+
+    <!-- 注册 -->
+    <div class="auth-form" id="form-register">
+      <label class="f">用户名（登录用，字母/数字，不可改）</label>
+      <input type="text" id="reg-user" placeholder="例如：xiaoming" autocomplete="off">
+      <label class="f">昵称（显示在公司里）</label>
+      <input type="text" id="reg-nick" placeholder="例如：小明" autocomplete="off">
+      <label class="f">密码（至少 4 位）</label>
+      <input type="password" id="reg-pass" placeholder="设置一个密码" autocomplete="new-password">
+      <label class="f">确认密码</label>
+      <input type="password" id="reg-pass2" placeholder="再输一次" autocomplete="new-password">
+      <label class="f">账号类型</label>
+      <select id="reg-role">
+        <option value="student">学生（CEO 本人）</option>
+        <option value="admin">管理员（家长/老师）</option>
+      </select>
+      <div class="auth-err" id="reg-err"></div>
+      <button class="btn btn-primary auth-btn" onclick="doRegister()">📝 注册并登录</button>
+      <div class="auth-hint">第一个注册的账号建议设为管理员，方便管理其他账号。</div>
+    </div>
+  </div>
+</div>
 
 <!-- ============ 开场向导 ============ -->
 <div class="wizard" id="wizard">
@@ -353,8 +435,13 @@ textarea{resize:vertical;min-height:64px}
       <div class="nav-item" data-page="badges"><span class="nav-ico">🏆</span>荣誉墙</div>
       <div class="nav-item" data-page="board"><span class="nav-ico">🪑</span>董事会</div>
       <div class="nav-item" data-page="settings"><span class="nav-ico">⚙️</span>设置</div>
+      <div class="nav-item" data-page="admin" id="nav-admin" style="display:none"><span class="nav-ico">🛡️</span>管理后台</div>
     </nav>
     <div class="side-ceo">当前职级<br><b id="s-title">实习 CEO</b><br><br><span id="s-gold">🪙 0</span> · <span id="s-lv">Lv.1</span></div>
+    <div class="side-user">
+      <div class="side-user-info">👤 <span id="s-username">未登录</span> <span class="side-role" id="s-role"></span></div>
+      <button class="side-logout" onclick="doLogout()">退出登录</button>
+    </div>
   </aside>
 
   <main class="main">
@@ -710,6 +797,33 @@ textarea{resize:vertical;min-height:64px}
       </div>
     </section>
 
+    <!-- ===== 管理后台（仅管理员） ===== -->
+    <section class="page" id="page-admin">
+      <h1 class="page-title">🛡️ 管理后台</h1>
+      <p class="page-desc">家长/老师视角：查看所有学生账号的经营概况，重置密码，管理账号。</p>
+
+      <div class="card" style="margin-bottom:16px">
+        <h2 class="sec-title">📊 全体概况</h2>
+        <div class="grid grid-3" id="admin-summary"></div>
+      </div>
+
+      <h2 class="sec-title">👥 学生账号（<span id="admin-count">0</span>）</h2>
+      <div class="card" id="admin-students"></div>
+
+      <h2 class="sec-title">🔧 账号管理</h2>
+      <div class="card">
+        <p class="hint" style="margin-bottom:12px">重置某账号密码，或删除账号（数据一并清除，不可恢复）。</p>
+        <div id="admin-manage"></div>
+      </div>
+
+      <h2 class="sec-title">💾 全体数据备份</h2>
+      <div class="card">
+        <p class="hint" style="margin-bottom:12px">导出所有账号数据为一个 JSON 文件，换电脑时可整体迁移。</p>
+        <button class="btn btn-ghost" onclick="exportAllData()">📤 导出全部账号数据</button>
+        <label class="btn btn-ghost" style="cursor:pointer">📥 导入全部数据<input type="file" id="admin-import" accept=".json" style="display:none" onchange="importAllData(event)"></label>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -722,7 +836,10 @@ textarea{resize:vertical;min-height:64px}
 ================================================================ */
 
 // ---------- 常量与规则 ----------
-var STORE_KEY = 'ceoAcademy_v2';
+var STORE_KEY = 'ceoAcademy_v2';          // 旧版单账号数据（用于迁移）
+var ACCOUNTS_KEY = 'ceoAcademy_accounts'; // 账号注册表
+var DATA_PREFIX = 'ceoAcademy_v2_';       // 每个账号的数据 key 前缀
+var currentUser = null;                   // 当前登录用户名
 
 var DEPTS = ['语文', '数学', '英语'];
 var FOCUS = { deep: { label: '深度专注', factor: 1.5 }, normal: { label: '一般', factor: 1.0 }, easy: { label: '有点分心', factor: 0.7 } };
@@ -802,7 +919,7 @@ function defaultState() {
 
 function load() {
   try {
-    var raw = localStorage.getItem(STORE_KEY);
+    var raw = currentUser ? localStorage.getItem(DATA_PREFIX + currentUser) : null;
     if (raw) {
       state = JSON.parse(raw);
       // v1 -> v2 迁移
@@ -814,7 +931,10 @@ function load() {
   state = defaultState();
 }
 
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save() {
+  if (!currentUser) return;
+  localStorage.setItem(DATA_PREFIX + currentUser, JSON.stringify(state));
+}
 
 function todayStr() {
   var d = new Date();
@@ -1483,7 +1603,7 @@ function renderSettings() {
     if (!a) return;
     var b = confirm('再确认一次：真的要清空？建议先导出备份。');
     if (!b) return;
-    localStorage.removeItem(STORE_KEY);
+    if (currentUser) localStorage.removeItem(DATA_PREFIX + currentUser);
     location.reload();
   };
 }
@@ -2103,6 +2223,7 @@ function gotoPage(pid) {
   document.querySelectorAll('.nav-item').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-page') === pid); });
   document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
   document.getElementById('page-' + pid).classList.add('active');
+  if (pid === 'admin') renderAdmin();
 }
 
 // ---------- 作业任务与倒计时 ----------
@@ -2403,18 +2524,299 @@ function getTaskScoreTotal(ds) {
   return total;
 }
 
-// ---------- 启动 ----------
-load();
-ensureMonsters(todayStr());
-ensureWeekQuest();
-if (state.profile.ceo) {
-  document.getElementById('wizard').classList.add('hide');
-  document.getElementById('app').classList.add('show');
-  render();
-} else {
-  initWizard();
+// ---------- 账号体系 ----------
+// 密码哈希（FNV-1a，前端防明文存储；非加密级，够家用）
+function hashPwd(pwd) {
+  var h = 0x811c9dc5;
+  for (var i = 0; i < pwd.length; i++) {
+    h ^= pwd.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return 'h' + h.toString(16);
 }
-renderSettings();
+// 账号注册表读写
+function getAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || []; } catch (e) { return []; }
+}
+function setAccounts(accs) { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accs)); }
+function findAccount(username) {
+  var accs = getAccounts();
+  for (var i = 0; i < accs.length; i++) if (accs[i].username === username) return accs[i];
+  return null;
+}
+// 读取任意用户的数据（管理后台用，不切换 currentUser）
+function readUserData(username) {
+  try {
+    var raw = localStorage.getItem(DATA_PREFIX + username);
+    if (raw) {
+      var d = JSON.parse(raw);
+      if (!d.game) d.game = defaultState().game;
+      if (!d.tasks) d.tasks = {};
+      return d;
+    }
+  } catch (e) { }
+  return null;
+}
+// 纯函数：基于任意数据对象算总能力值（不依赖全局 state）
+function computeTotalPower(data) {
+  if (!data) return 0;
+  var t = 0;
+  var tasks = data.tasks || {};
+  Object.keys(tasks).forEach(function (ds) {
+    (tasks[ds] || []).forEach(function (tk) {
+      if (tk.status === 'done' || tk.status === 'early') t += tk.score;
+    });
+  });
+  (data.daily || []).forEach(function (e) { t += bonusScoreOfEntry(e); });
+  (data.bugs || []).forEach(function (b) { if (b.status === 'fixed') t += 0.2; });
+  return r1(t);
+}
+// 纯函数：基于任意数据算连营天数
+function computeStreak(data) {
+  if (!data || !data.daily || !data.daily.length) return 0;
+  var dates = data.daily.map(function (e) { return e.date; }).sort();
+  var best = 1, run = 1;
+  for (var i = 1; i < dates.length; i++) {
+    run = (daysBetween(dates[i - 1], dates[i]) === 1) ? run + 1 : 1;
+    if (run > best) best = run;
+  }
+  return best;
+}
+
+// 切换登录/注册标签
+function switchAuthTab(mode) {
+  document.getElementById('form-login').classList.toggle('active', mode === 'login');
+  document.getElementById('form-register').classList.toggle('active', mode === 'register');
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('reg-err').textContent = '';
+}
+
+// 注册
+function doRegister() {
+  var u = document.getElementById('reg-user').value.trim();
+  var nick = document.getElementById('reg-nick').value.trim();
+  var p = document.getElementById('reg-pass').value;
+  var p2 = document.getElementById('reg-pass2').value;
+  var role = document.getElementById('reg-role').value;
+  var err = document.getElementById('reg-err');
+  err.style.color = '';
+  if (!u) { err.textContent = '请填写用户名'; return; }
+  if (!/^[a-zA-Z0-9_]{2,20}$/.test(u)) { err.textContent = '用户名只能含字母/数字/下划线，2-20 位'; return; }
+  if (p.length < 4) { err.textContent = '密码至少 4 位'; return; }
+  if (p !== p2) { err.textContent = '两次密码不一致'; return; }
+  if (findAccount(u)) { err.textContent = '用户名已存在，换一个'; return; }
+  var accs = getAccounts();
+  var finalRole = accs.length === 0 ? 'admin' : role; // 第一个账号强制管理员
+  accs.push({ username: u, nick: nick || u, pwd: hashPwd(p), role: finalRole, createdAt: todayStr() });
+  setAccounts(accs);
+  err.style.color = '#2e8b57';
+  err.textContent = '注册成功！正在进入…' + (finalRole === 'admin' ? '（你是首个账号，已设为管理员）' : '');
+  setTimeout(function () {
+    document.getElementById('reg-pass').value = '';
+    document.getElementById('reg-pass2').value = '';
+    enterApp(u);
+  }, 700);
+}
+
+// 登录
+function doLogin() {
+  var u = document.getElementById('login-user').value.trim();
+  var p = document.getElementById('login-pass').value;
+  var err = document.getElementById('login-err');
+  err.style.color = '';
+  var acc = findAccount(u);
+  if (!acc) { err.textContent = '用户名不存在'; return; }
+  if (acc.pwd !== hashPwd(p)) { err.textContent = '密码错误'; return; }
+  document.getElementById('login-pass').value = '';
+  enterApp(u);
+}
+
+// 进入应用（登录/注册成功后统一调用）
+function enterApp(u) {
+  currentUser = u;
+  localStorage.setItem('ceoAcademy_lastUser', u);
+  load();
+  ensureMonsters(todayStr());
+  ensureWeekQuest();
+  document.getElementById('auth-screen').classList.add('hide');
+  var acc = findAccount(u);
+  // 管理员导航可见性
+  document.getElementById('nav-admin').style.display = (acc && acc.role === 'admin') ? '' : 'none';
+  if (state.profile.ceo) {
+    document.getElementById('wizard').classList.add('hide');
+    document.getElementById('app').classList.add('show');
+    render();
+  } else {
+    document.getElementById('wizard').classList.remove('hide');
+    initWizard();
+  }
+  renderSettings();
+  renderSidebarUser();
+}
+
+// 退出登录
+function doLogout() {
+  if (currentUser) save();
+  currentUser = null;
+  localStorage.removeItem('ceoAcademy_lastUser');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('wizard').classList.add('hide');
+  document.getElementById('auth-screen').classList.remove('hide');
+  switchAuthTab('login');
+}
+
+// 侧边栏用户信息
+function renderSidebarUser() {
+  var acc = findAccount(currentUser);
+  if (!acc) return;
+  document.getElementById('s-username').textContent = acc.nick || acc.username;
+  var roleEl = document.getElementById('s-role');
+  roleEl.textContent = acc.role === 'admin' ? '管理员' : '学生';
+  roleEl.style.display = '';
+}
+
+// ---------- 管理后台 ----------
+function renderAdmin() {
+  var acc = findAccount(currentUser);
+  if (!acc || acc.role !== 'admin') return;
+  var accs = getAccounts();
+  var students = accs.filter(function (a) { return a.role !== 'admin'; });
+  var admins = accs.filter(function (a) { return a.role === 'admin'; });
+
+  // 概况统计
+  var totalStudents = students.length;
+  var activeCount = 0, sumPower = 0;
+  students.forEach(function (s) {
+    var d = readUserData(s.username);
+    if (d) {
+      var p = computeTotalPower(d);
+      sumPower += p;
+      if ((d.daily || []).some(function (e) { return e.date === todayStr(); })) activeCount++;
+    }
+  });
+  document.getElementById('admin-summary').innerHTML =
+    '<div class="admin-stat"><div class="as-num">' + totalStudents + '</div><div class="as-label">学生账号</div></div>' +
+    '<div class="admin-stat"><div class="as-num">' + activeCount + '</div><div class="as-label">今日已经营</div></div>' +
+    '<div class="admin-stat"><div class="as-num">' + r1(sumPower) + '</div><div class="as-label">全体能力值总和</div></div>';
+
+  // 学生列表
+  document.getElementById('admin-count').textContent = students.length;
+  var sh = '';
+  if (!students.length) {
+    sh = '<div class="empty">还没有学生账号<br><span class="hint">让学生用"注册新账号"注册，类型选"学生"</span></div>';
+  } else {
+    sh = '<table class="admin-table"><tr><th>学生</th><th>能力值</th><th>职级</th><th>等级</th><th>最长连营</th><th>金币</th><th>今日</th></tr>';
+    students.forEach(function (s) {
+      var d = readUserData(s.username);
+      var p = d ? computeTotalPower(d) : 0;
+      var lv = levelOf(CEO_LEVELS, p);
+      var streak = d ? computeStreak(d) : 0;
+      var gold = d && d.game ? d.game.gold : 0;
+      var gameLv = d && d.game ? d.game.lv : 1;
+      var todayDone = d && (d.daily || []).some(function (e) { return e.date === todayStr(); });
+      sh += '<tr><td><b>' + esc(s.nick || s.username) + '</b><br><span class="hint">@' + esc(s.username) + '</span></td>' +
+        '<td><b style="color:var(--accent)">' + p + '</b></td>' +
+        '<td>' + lv.cur.name + '</td>' +
+        '<td>Lv.' + gameLv + '</td>' +
+        '<td>🔥' + streak + '</td>' +
+        '<td>🪙' + gold + '</td>' +
+        '<td>' + (todayDone ? '<span class="tag tag-up">已经营</span>' : '<span class="tag tag-flat">未</span>') + '</td></tr>';
+    });
+    sh += '</table>';
+  }
+  document.getElementById('admin-students').innerHTML = sh;
+
+  // 账号管理
+  var mh = '';
+  accs.forEach(function (a) {
+    mh += '<div class="admin-row">' +
+      '<span class="ar-name">' + esc(a.nick || a.username) + '</span>' +
+      '<span class="role-badge' + (a.role === 'admin' ? ' admin' : '') + '">' + (a.role === 'admin' ? '管理员' : '学生') + '</span>' +
+      '<span class="ar-meta">@' + esc(a.username) + ' · 注册于 ' + a.createdAt + '</span>' +
+      '<span class="ar-actions">' +
+      '<button class="btn btn-ghost btn-sm" onclick="resetPwd(\'' + a.username + '\')">重置密码</button>' +
+      (a.username === currentUser ? '' : '<button class="btn btn-danger btn-sm" onclick="deleteAccount(\'' + a.username + '\')">删除</button>') +
+      '</span></div>';
+  });
+  document.getElementById('admin-manage').innerHTML = mh;
+}
+
+function resetPwd(username) {
+  var np = prompt('给 @' + username + ' 设置新密码（至少 4 位）：');
+  if (np == null) return;
+  if (np.length < 4) { toast('密码至少 4 位'); return; }
+  var accs = getAccounts();
+  for (var i = 0; i < accs.length; i++) {
+    if (accs[i].username === username) { accs[i].pwd = hashPwd(np); break; }
+  }
+  setAccounts(accs);
+  toast('已重置 @' + username + ' 的密码');
+}
+
+function deleteAccount(username) {
+  if (!confirm('确定删除账号 @' + username + '？该账号的所有经营数据将一并清除，不可恢复。')) return;
+  if (!confirm('再确认一次：真的要删除 @' + username + ' 吗？')) return;
+  var accs = getAccounts().filter(function (a) { return a.username !== username; });
+  setAccounts(accs);
+  localStorage.removeItem(DATA_PREFIX + username);
+  renderAdmin();
+  toast('已删除 @' + username);
+}
+
+// 全体数据导出/导入
+function exportAllData() {
+  var accs = getAccounts();
+  var bundle = { accounts: accs, data: {}, exportedAt: todayStr() };
+  accs.forEach(function (a) {
+    var d = readUserData(a.username);
+    if (d) bundle.data[a.username] = d;
+  });
+  var blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = '能力公司-全体备份-' + todayStr() + '.json';
+  link.click();
+  toast('已导出 ' + accs.length + ' 个账号的数据');
+}
+
+function importAllData(ev) {
+  var file = ev.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var bundle = JSON.parse(reader.result);
+      if (!bundle.accounts || !bundle.data) throw new Error('格式不对');
+      if (!confirm('导入将覆盖现有 ' + getAccounts().length + ' 个账号的数据，确定继续？')) return;
+      setAccounts(bundle.accounts);
+      Object.keys(bundle.data).forEach(function (u) {
+        localStorage.setItem(DATA_PREFIX + u, JSON.stringify(bundle.data[u]));
+      });
+      renderAdmin();
+      toast('已导入 ' + bundle.accounts.length + ' 个账号');
+    } catch (e) {
+      toast('导入失败：' + e.message);
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+// ---------- 启动 ----------
+(function () {
+  var accs = getAccounts();
+  // 迁移旧版单账号数据：若存在旧 STORE_KEY 且还没有任何账号，提示注册
+  var lastUser = localStorage.getItem('ceoAcademy_lastUser');
+  if (lastUser && findAccount(lastUser)) {
+    document.getElementById('login-user').value = lastUser;
+  }
+  switchAuthTab('login');
+  // 回车快捷登录/注册
+  document.getElementById('login-pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('reg-pass2').addEventListener('keydown', function (e) { if (e.key === 'Enter') doRegister(); });
+})();
 </script>
 </body>
 </html>
