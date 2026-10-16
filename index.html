@@ -1326,8 +1326,15 @@ function loadDailyEntry(ds) {
 function saveDaily() {
   var e = collectDailyForm();
   if (!e.date) { toast('请选择日期'); return; }
-  var hasAny = Object.keys(e.bonus).length > 0 || (e.note && e.note.trim());
-  if (!hasAny) { toast('今天还没投入，先记不了账哦'); return; }
+  var dayTasks = state.tasks[e.date] || [];
+  var doneTasks = dayTasks.filter(function (t) { return t.status === 'done' || t.status === 'early' || t.status === 'late'; });
+  var pendingTasks = dayTasks.filter(function (t) { return t.status === 'todo' || t.status === 'running'; });
+  var hasAny = Object.keys(e.bonus).length > 0 || (e.note && e.note.trim()) || doneTasks.length > 0;
+  if (!hasAny) {
+    if (pendingTasks.length > 0) { toast('还有 ' + pendingTasks.length + ' 项作业没完成哦，先点「开始」走完倒计时再记账'); }
+    else { toast('今天还没投入，先记不了账哦'); }
+    return;
+  }
   // 奖励当日完成徽章的情况在 render 里检查
   state.daily = state.daily.filter(function (x) { return x.date !== e.date; });
   // 同步作业任务得分到 entry
@@ -2306,7 +2313,7 @@ function renderTasks() {
     btn.onclick = function () { startTimer(ds, btn.getAttribute('data-start')); };
   });
   box.querySelectorAll('[data-finish]').forEach(function (btn) {
-    btn.onclick = function () { finishTask(); };
+    btn.onclick = function () { finishTask(btn.getAttribute('data-finish')); };
   });
   box.querySelectorAll('[data-del]').forEach(function (btn) {
     btn.onclick = function () { deleteTask(ds, btn.getAttribute('data-del')); };
@@ -2323,6 +2330,10 @@ function startTimer(ds, taskId) {
   tmElapsedAtPause = 0;
   t.status = 'running';
   t.actualSec = 0;
+  // 持久化计时状态：刷新/切页后仍能恢复并完成，不会卡在"进行中"
+  t.startTs = tmStartTs;
+  t.pausedAccum = 0;
+  t.paused = false;
   tmPaused = false;
   save(); renderTasks();
 
@@ -2344,11 +2355,11 @@ function setTimerButtons(mode) {
   if (mode === 'running') {
     box.innerHTML = '<button class="btn btn-ghost" id="tm-pause">⏸ 暂停</button><button class="btn btn-primary" id="tm-finish">✅ 完成</button>';
     document.getElementById('tm-pause').onclick = pauseTimer;
-    document.getElementById('tm-finish').onclick = finishTask;
+    document.getElementById('tm-finish').onclick = function () { finishTask(); };
   } else if (mode === 'paused') {
     box.innerHTML = '<button class="btn btn-primary" id="tm-resume">▶ 继续</button><button class="btn btn-primary" id="tm-finish">✅ 完成</button>';
     document.getElementById('tm-resume').onclick = resumeTimer;
-    document.getElementById('tm-finish').onclick = finishTask;
+    document.getElementById('tm-finish').onclick = function () { finishTask(); };
   } else if (mode === 'done') {
     box.innerHTML = '<button class="btn btn-primary" onclick="closeTimer()">收下</button>';
   }
@@ -2359,6 +2370,10 @@ function pauseTimer() {
   tmElapsedAtPause += Math.floor((Date.now() - tmStartTs) / 1000);
   clearInterval(tmInterval); tmInterval = null;
   tmPaused = true;
+  // 持久化暂停状态
+  tmTask.pausedAccum = tmElapsedAtPause;
+  tmTask.paused = true;
+  save();
   setTimerButtons('paused');
   document.getElementById('tm-display').textContent = '⏸ ' + fmtTime(tmTotalSec - tmElapsedAtPause);
 }
@@ -2367,6 +2382,11 @@ function resumeTimer() {
   if (!tmTask) return;
   tmStartTs = Date.now();
   tmPaused = false;
+  // 持久化恢复状态
+  tmTask.startTs = tmStartTs;
+  tmTask.pausedAccum = tmElapsedAtPause;
+  tmTask.paused = false;
+  save();
   setTimerButtons('running');
   tickTimer();
   tmInterval = setInterval(tickTimer, 1000);
@@ -2413,7 +2433,20 @@ function fmtTime(sec) {
   return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
 
-function finishTask() {
+function finishTask(taskId) {
+  // 若内存计时变量丢失（刷新/切页后），从存储恢复任务，避免卡在"进行中"
+  if (!tmTask && taskId) {
+    var ds = document.getElementById('d-date').value || todayStr();
+    var tasks = state.tasks[ds] || [];
+    var found = tasks.find(function (x) { return x.id === taskId; });
+    if (found && found.status === 'running') {
+      tmTask = found; tmDateKey = ds;
+      tmStartTs = found.startTs || Date.now();
+      tmTotalSec = found.estMin * 60;
+      tmElapsedAtPause = found.pausedAccum || 0;
+      tmPaused = !!found.paused;
+    }
+  }
   if (!tmTask) return;
   clearInterval(tmInterval); tmInterval = null;
   var elapsed = tmPaused ? tmElapsedAtPause : tmElapsedAtPause + Math.floor((Date.now() - tmStartTs) / 1000);
@@ -2446,6 +2479,8 @@ function finishTask() {
     floatText('🐌 拖堂了，下次提速');
   }
   tmTask.score = score;
+  // 清理计时持久化字段
+  delete tmTask.startTs; delete tmTask.pausedAccum; delete tmTask.paused;
   // 金币 + 经验入账（经验是升级的唯一来源，全部来自作业任务）
   if (goldGain > 0) addGold(goldGain, true);
   addXp(xpGain, true);
