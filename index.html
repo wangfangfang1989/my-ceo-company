@@ -1867,37 +1867,39 @@ function ensureMonsters(ds) {
   return state.game.monsters[ds];
 }
 
-function monsterProgress(m, entry) {
-  // entry = 当日打卡数据（可能为 null）
-  if (!entry) return { now: 0, goal: 1, done: false };
+function monsterProgress(m, ds) {
+  // ds = 日期字符串。任务类小怪直接读 state.tasks，加分项类小怪读当日账本 entry
   var def = MONSTER_POOL.find(function (p) { return p.type === m.type; });
-  var tasks = state.tasks[entry.date] || [];
+  var tasks = state.tasks[ds] || [];
   var doneTasks = tasks.filter(function (t) { return t.status === 'done' || t.status === 'early'; });
   var earlyTasks = tasks.filter(function (t) { return t.status === 'early'; });
+  var entry = state.daily.find(function (e) { return e.date === ds; });
+  var bonus = (entry && entry.bonus) ? entry.bonus : {};
   var now = 0, goal = 1;
   switch (def.check) {
     case 'task1': now = doneTasks.length; goal = 1; break;
     case 'task2': now = doneTasks.length; goal = 2; break;
     case 'early1': now = earlyTasks.length; goal = 1; break;
-    case 'extra': now = entry.bonus.extra ? 1 : 0; goal = 1; break;
-    case 'fix': now = entry.bonus.fix ? 1 : 0; goal = 1; break;
-    case 'read': now = entry.bonus.read ? 1 : 0; goal = 1; break;
+    case 'extra': now = bonus.extra ? 1 : 0; goal = 1; break;
+    case 'fix': now = bonus.fix ? 1 : 0; goal = 1; break;
+    case 'read': now = bonus.read ? 1 : 0; goal = 1; break;
     case 'allbonus':
       var bn = 0;
-      if (entry.bonus.extra) bn++;
-      if (entry.bonus.read) bn++;
-      if (entry.bonus.fix) bn++;
+      if (bonus.extra) bn++;
+      if (bonus.read) bn++;
+      if (bonus.fix) bn++;
       now = bn; goal = 3; break;
   }
   return { now: now, goal: goal, done: now >= goal };
 }
 
-function checkMonstersAfterDaily(entry) {
-  var ms = ensureMonsters(entry.date);
+// 统一的小怪检查：silent=true 时只更新状态、不弹战利品窗（供完成任务时调用）
+function checkMonsters(ds, silent) {
+  var ms = ensureMonsters(ds);
   var killed = [];
   ms.forEach(function (m) {
     if (!m.done) {
-      var pr = monsterProgress(m, entry);
+      var pr = monsterProgress(m, ds);
       if (pr.done) {
         m.done = true;
         killed.push(MONSTER_POOL.find(function (p) { return p.type === m.type; }));
@@ -1907,10 +1909,15 @@ function checkMonstersAfterDaily(entry) {
   if (killed.length) {
     addGold(MON_REWARD.gold * killed.length, true);
     save();
-    showMonsterLoot(killed);
+    if (!silent) showMonsterLoot(killed);
   }
   // 周副本进度检查
-  checkWeekQuest();
+  checkWeekQuest(silent);
+  return killed;
+}
+
+function checkMonstersAfterDaily(entry) {
+  checkMonsters(entry.date, false);
 }
 
 function showMonsterLoot(killed) {
@@ -1979,7 +1986,7 @@ function ensureWeekQuest() {
   return state.game.weekQuest;
 }
 
-function checkWeekQuest() {
+function checkWeekQuest(silent) {
   var q = ensureWeekQuest();
   if (q.done) return;
   var pr = weekProgress();
@@ -1988,7 +1995,7 @@ function checkWeekQuest() {
     var def = WEEK_QUESTS[q.type];
     addGold(def.gold, true);
     save();
-    showWeekQuestWin(def);
+    if (!silent) showWeekQuestWin(def);
   }
 }
 
@@ -2078,14 +2085,13 @@ function renderShop() {
 function renderArena() {
   var ds = todayStr();
   var ms = ensureMonsters(ds);
-  var entry = state.daily.find(function (e) { return e.date === ds; });
   var killed = ms.filter(function (m) { return m.done; }).length;
   document.getElementById('mon-count').textContent = killed + ' / ' + ms.length + ' 已讨伐';
 
   var html = '';
   ms.forEach(function (m) {
     var def = MONSTER_POOL.find(function (p) { return p.type === m.type; });
-    var pr = monsterProgress(m, entry);
+    var pr = monsterProgress(m, ds);
     var hpPct = m.done ? 0 : Math.max(8, 100 - (pr.now / pr.goal) * 100);
     html += '<div class="card monster-card' + (m.done ? ' done' : '') + '">' +
       (m.done ? '<span class="mon-badge-done">☠️</span>' : '') +
@@ -2445,7 +2451,14 @@ function finishTask() {
   addXp(xpGain, true);
   // 保存到当日 entry 的 bonus 里（影响能力值计算）
   applyTaskScoreToDaily(tmDateKey, score);
-  save(); renderTasks();
+  save();
+  // 完成任务即攻击小怪：静默检查（不弹战利品窗，避免和完成弹层打架），血条会随任务进度下降
+  checkMonsters(tmDateKey, true);
+  // 刷新所有相关界面：任务列表 + 总览分数 + 事业部 + 侧边栏 + 猎场血条
+  renderTasks();
+  renderDashboard();
+  renderSide();
+  renderArena();
   // 更新弹层
   document.getElementById('tm-status').style.display = '';
   document.getElementById('tm-status').className = 'tm-status ' + resultClass;
